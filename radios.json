@@ -4,7 +4,7 @@
         "Persian Radio"
     ],
     "links": [
-        "http://r.gooshkon.ir:8000/live.ogg",
+        "https://r.gooshkon.ir:443/live.ogg",
         "http://r.pgbu.ir:8000/live"
     ]
 }

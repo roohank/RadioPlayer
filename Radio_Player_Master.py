@@ -73,7 +73,7 @@ class Radio(QWidget):
     def _load_radio_data(self):
         """Loads radio names and links from a JSON file, or initializes them with defaults if not found or corrupted."""
         default_radio_names = ['Gooshkon Radio', 'Persian Radio']
-        default_radio_links = ['http://r.gooshkon.ir:8000/live.ogg', 'http://r.pgbu.ir:8000/live']
+        default_radio_links = ['https://r.gooshkon.ir:443/live.ogg', 'http://r.pgbu.ir:8000/live']
         self.radio_names = []
         self.radio_links = []
         
@@ -141,18 +141,28 @@ class Radio(QWidget):
         self.volume_slider.valueChanged.connect(self._set_volume)
         radio_layout.addWidget(self.volume_slider, 1, 1, 1, 2)
 
-        self.play_button = QPushButton('Play')
-        self.play_button.setShortcut(QKeySequence('Ctrl+P'))
-        self.play_button.setGeometry(20, 230, 50, 25)
-        self.play_button.setStyleSheet('background-color: rgb(46, 200, 87)')
-        self.play_button.clicked.connect(self._toggle_play_stop)
-        radio_layout.addWidget(self.play_button, 2, 0)
+        # --- MODIFIED: Play/Pause Button ---
+        self.play_pause_button = QPushButton('Play')
+        self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
+        self.play_pause_button.setGeometry(20, 230, 50, 25)
+        self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87)')
+        self.play_pause_button.clicked.connect(self._toggle_play_pause) # Connect to new toggle method
+        radio_layout.addWidget(self.play_pause_button, 2, 0)
+
+        # --- NEW: Stop Button ---
+        self.stop_button = QPushButton('Stop')
+        self.stop_button.setShortcut(QKeySequence('Ctrl+S'))
+        self.stop_button.setGeometry(75, 230, 50, 25) # Position next to Play/Pause
+        self.stop_button.setStyleSheet('background-color: rgb(200, 87, 46);')
+        self.stop_button.clicked.connect(self.stop_player) # Connect to dedicated stop method
+        radio_layout.addWidget(self.stop_button, 2, 1)
+        # ------------------------------------
 
         self.link_input = QLineEdit()
         self.link_input.setAccessibleName('Enter Link For Play')
-        self.link_input.setGeometry(80, 230, 150, 20)
+        self.link_input.setGeometry(130, 230, 100, 20) # Adjusted position for new stop button
         self.link_input.setStyleSheet('background-color: rgb(10, 10, 10)')
-        radio_layout.addWidget(self.link_input, 2, 1, 1, 2)
+        radio_layout.addWidget(self.link_input, 2, 2) # Now spans 1 column
 
         add_btn = QPushButton('Add Radio')
         add_btn.setAccessibleName('Add New Radio')
@@ -181,7 +191,7 @@ class Radio(QWidget):
         """Displays a dialog to allow the user to add a new radio station,
         pre-filling the name field with the currently selected radio's name.
         """
-        self.stop_player()
+        self.stop_player() # Stop current playback before showing dialog
 
         self.add_dialog = QDialog(self)
         self.add_dialog.setWindowTitle('Add New Radio')
@@ -196,17 +206,15 @@ class Radio(QWidget):
         self.new_radio_name_input.setGeometry(75, 10, 110, 20)
         self.new_radio_name_input.setPlaceholderText('Enter Radio Name')
         
-        # --- NEW FEATURE: Pre-fill radio name ---
-        if self.radio_names: # Only pre-fill if there are radios in the list
+        if self.radio_names:
             self.new_radio_name_input.setText(self.selected_radio_name)
-        # ----------------------------------------
 
         self.new_radio_link_input = QLineEdit(self.add_dialog)
         self.new_radio_link_input.setGeometry(75, 40, 110, 20)
         self.new_radio_link_input.setPlaceholderText('Enter Radio Link')
 
         add_button = QPushButton("Add", self.add_dialog)
-        add_button.clicked.connect(self._add_or_update_radio) # Changed this connection
+        add_button.clicked.connect(self._add_or_update_radio)
         add_button.setGeometry(45, 70, 50, 20)
 
         cancel_button = QPushButton("Cancel", self.add_dialog)
@@ -227,38 +235,30 @@ class Radio(QWidget):
             QMessageBox.warning(self, "Input Error", "Radio link must be provided.")
             return
 
-        # Check if the name already exists AND is the currently selected radio's name
-        # This indicates an attempt to update the current radio's link
         if new_name == self.selected_radio_name and new_name in self.radio_names:
             try:
                 index_to_update = self.radio_names.index(new_name)
-                # --- NEW FEATURE: Update existing link ---
                 self.radio_links[index_to_update] = new_link
                 self._save_radio_data()
                 QMessageBox.information(self, "Success", f"Link for '{new_name}' updated successfully.")
                 self.add_dialog.accept()
-                self._refresh_radio_list_and_selection(new_name) # Refresh and re-select
+                self._refresh_radio_list_and_selection(new_name)
                 return
-                # ------------------------------------------
             except ValueError:
-                # This case should ideally not happen if new_name == self.selected_radio_name
                 QMessageBox.critical(self, "Error", "Selected radio not found during update (this shouldn't happen).")
                 self.add_dialog.reject()
                 return
 
-        # If name is new, or existing but not the currently selected one, add as new
         if new_name in self.radio_names:
             QMessageBox.warning(self, "Input Error", "A radio with this name already exists. Please choose a different name.")
             return
 
-        # --- EXISTING FEATURE: Add new radio ---
         self.radio_names.append(new_name)
         self.radio_links.append(new_link)
         self._save_radio_data()
         QMessageBox.information(self, "Success", f"'{new_name}' added successfully.")
         self.add_dialog.accept()
-        self._refresh_radio_list_and_selection(new_name) # Refresh and select the new radio
-        # ---------------------------------------
+        self._refresh_radio_list_and_selection(new_name)
 
     def _refresh_radio_list_and_selection(self, selected_name):
         """Refreshes the combo box items and sets the selection."""
@@ -266,7 +266,7 @@ class Radio(QWidget):
         self.radio_combo_box.addItems(self.radio_names)
         if selected_name in self.radio_names:
             self.radio_combo_box.setCurrentText(selected_name)
-        else: # Fallback to first item if the desired one isn't found (e.g. after deleting)
+        else:
             if self.radio_names:
                 self.radio_combo_box.setCurrentIndex(0)
             else:
@@ -274,18 +274,18 @@ class Radio(QWidget):
                 self.info_display.show()
                 self.info_display.setText("   No radios found. Add a new one!")
                 self.current_link = ""
-        self._on_radio_selected() # Call this to update player media and display
+        self._on_radio_selected()
 
     def _on_radio_selected(self):
         """Updates the display and prepares the VLC player when a radio is selected from the ComboBox."""
-        if not self.radio_names: # Handle case where list is empty
+        if not self.radio_names:
             self.selected_radio_name = ""
             self.selected_radio_index = -1
             self.lcd.hide()
             self.info_display.show()
             self.info_display.setText("   No radios available. Add a new one!")
             self.current_link = ""
-            self.stop_player()
+            self.stop_player() # Ensure player is stopped and button is "Play"
             return
 
         self.selected_radio_name = self.radio_combo_box.currentText()
@@ -311,17 +311,17 @@ class Radio(QWidget):
             self.current_link = ""
             self.stop_player()
 
-        self.play_button.setText('Play')
-        self.play_button.setStyleSheet('background-color: rgb(46, 200, 87)')
-        self.play_button.setShortcut(QKeySequence('Ctrl+P'))
+        # Reset Play/Pause button to 'Play' when a new radio is selected
+        self.play_pause_button.setText('Play')
+        self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87)')
+        self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
 
-    def _toggle_play_stop(self):
-        """Toggles between playing and stopping the radio based on button text.
-        Prioritizes the direct link input if text is present.
-        """
+    def _toggle_play_pause(self):
+        """Toggles between playing and pausing the radio based on the button text."""
         direct_link = self.link_input.text().strip()
 
-        if self.play_button.text() == 'Play':
+        if self.play_pause_button.text() == 'Play':
+            # Handle playing
             if direct_link:
                 try:
                     media = self.instance.media_new(direct_link)
@@ -352,22 +352,29 @@ class Radio(QWidget):
                     return
 
             self.player.audio_set_mute(0)
-            self.play_button.setText('Stop')
-            self.play_button.setStyleSheet('background-color: rgb(200, 87, 46);')
-            self.play_button.setShortcut(QKeySequence('Ctrl+S'))
-        else:
-            self.stop_player()
-            if direct_link:
-                self.link_input.clear()
-            self.info_display.hide()
-            self.lcd.show()
+            self.play_pause_button.setText('Pause')
+            self.play_pause_button.setStyleSheet('background-color: rgb(255, 165, 0);') # Orange for Pause
+            self.play_pause_button.setShortcut(QKeySequence('Ctrl+P')) # Keep same shortcut for toggle
+
+        elif self.play_pause_button.text() == 'Pause':
+            # Handle pausing
+            self.player.pause()
+            self.info_display.show()
+            self.info_display.setText(f"   Paused: {self.selected_radio_name or direct_link}")
+            self.play_pause_button.setText('Play')
+            self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);') # Green for Play
+            self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
 
     def stop_player(self):
-        """Stops the VLC media player and resets the play button state."""
+        """Stops the VLC media player completely and resets the Play/Pause button state."""
         self.player.stop()
-        self.play_button.setText('Play')
-        self.play_button.setStyleSheet('background-color: rgb(46, 200, 87);')
-        self.play_button.setShortcut(QKeySequence('Ctrl+P'))
+        self.play_pause_button.setText('Play')
+        self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);') # Green for Play
+        self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
+        self.info_display.hide()
+        self.lcd.show() # Return to LCD display after stopping
+        if self.link_input.text().strip(): # Clear direct link input only if it was used
+            self.link_input.clear()
 
     def _set_volume(self, value):
         """Sets the volume of the VLC media player based on the slider value."""
@@ -400,10 +407,8 @@ class Radio(QWidget):
                 self.radio_links.pop(index_to_delete)
                 self._save_radio_data()
 
-                # Determine which radio to select after deletion
                 next_selected_name = None
                 if self.radio_names:
-                    # Try to select the same index if possible, otherwise the first
                     if index_to_delete < len(self.radio_names):
                         next_selected_name = self.radio_names[index_to_delete]
                     else:
