@@ -93,7 +93,7 @@ class Radio(QWidget):
         """Loads radio names and links from a JSON file, or initializes them with defaults if not found or corrupted."""
         # Default radio stations, used if radios.json is not found or corrupted
         default_radio_names = ['Gooshkon Radio', 'Persian Radio']
-        default_radio_links = ['https://r.gooshkon.ir:443/live.ogg', 'http://r.pgbu.ir:8000/live']
+        default_radio_links = ['http://r.gooshkon.ir:8000/live.ogg', 'http://r.pgbu.ir:8000/live']
         self.radio_names = []
         self.radio_links = []
         
@@ -160,7 +160,7 @@ class Radio(QWidget):
         self.radio_combo_box = QComboBox()
         self.radio_combo_box.setAccessibleName("Choose radio:")
         self.radio_combo_box.addItems(self.radio_names)
-        self.radio_combo_box.activated.connect(self._on_radio_selected) # This remains connected for manual selection
+        self.radio_combo_box.activated.connect(self._on_radio_selected)
         self.radio_combo_box.setStyleSheet('background-color: rgb(10, 10, 10); color: white;')
         navigation_and_volume_layout.addWidget(self.radio_combo_box)
 
@@ -244,12 +244,12 @@ class Radio(QWidget):
 
         # Initial selection and display update
         if self.radio_names:
-            # When the app starts, we don't auto-play. Just prepare the first radio.
-            self._on_radio_selected(play_on_select=False) 
+            self._on_radio_selected(play_on_select=False) # Don't auto-play on initial load
         else:
             self.lcd.hide()
             self.info_display.show()
             self.info_display.setText("   No radios found. Add a new one!")
+
 
     def _go_to_next_radio(self):
         """Navigates to the next radio in the list (cycles back to start if at end) and plays it automatically."""
@@ -259,8 +259,7 @@ class Radio(QWidget):
         current_index = self.radio_combo_box.currentIndex()
         next_index = (current_index + 1) % len(self.radio_names) # Cyclic navigation
         self.radio_combo_box.setCurrentIndex(next_index)
-        # Automatically play the newly selected radio
-        self._on_radio_selected(play_on_select=True) 
+        self._on_radio_selected(play_on_select=True) # Play the new radio automatically
 
     def _go_to_previous_radio(self):
         """Navigates to the previous radio in the list (cycles to end if at start) and plays it automatically."""
@@ -271,8 +270,9 @@ class Radio(QWidget):
         # Add len(self.radio_names) to handle negative result of -1 % N correctly
         prev_index = (current_index - 1 + len(self.radio_names)) % len(self.radio_names) # Cyclic navigation
         self.radio_combo_box.setCurrentIndex(prev_index)
-        # Automatically play the newly selected radio
-        self._on_radio_selected(play_on_select=True) 
+        self._on_radio_selected(play_on_select=True) # Play the new radio automatically
+
+
 
     def _show_add_radio_dialog(self):
         """Displays a dialog to allow the user to add a new radio station,
@@ -383,14 +383,10 @@ class Radio(QWidget):
                 self.info_display.show()
                 self.info_display.setText("   No radios found. Add a new one!")
                 self.current_link = "" # No current link if list is empty
-        # When refreshing, we typically don't auto-play unless specifically requested (e.g., after add/update where it re-selects)
-        # Calling _on_radio_selected without play_on_select=True here just updates the UI to show selection
-        self._on_radio_selected(play_on_select=False) 
+        self._on_radio_selected() # Trigger update for player media and display
 
-    def _on_radio_selected(self, play_on_select=False): # CORRECTED: 'play_on_select' parameter is now correctly defined
-        """Updates the display and prepares the VLC player when a radio is selected from the ComboBox.
-        'play_on_select' flag determines if playback should start automatically.
-        """
+    def _on_radio_selected(self):
+        """Updates the display and prepares the VLC player when a radio is selected from the ComboBox."""
         if not self.radio_names: # Handle case where list becomes empty
             self.selected_radio_name = ""
             self.selected_radio_index = -1
@@ -416,15 +412,6 @@ class Radio(QWidget):
             media = self.instance.media_new(self.current_link)
             self.player.set_media(media)
             self.player.audio_set_mute(0) # Ensure not muted
-            
-            if play_on_select: # If auto-play is requested (e.g., from Next/Prev buttons)
-                self.player.play()
-                self.play_pause_button.setText('Pause')
-                self.play_pause_button.setStyleSheet('background-color: rgb(255, 165, 0); color: white;')
-                self.info_display.show()
-                self.info_display.setText(f"   Playing: {self.selected_radio_name}")
-                self.lcd.hide()
-
         except ValueError:
             QMessageBox.critical(self, "Error", "Selected radio not found in internal list. Please check data integrity.")
             self.current_link = ""
@@ -436,11 +423,10 @@ class Radio(QWidget):
             self.stop_player()
             self._stop_recording()
 
-        # Reset Play/Pause button to 'Play' if not playing automatically (e.g., manual combobox selection)
-        if not play_on_select:
-            self.play_pause_button.setText('Play')
-            self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87); color: white;')
-            self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
+        # Reset Play/Pause button to 'Play' when a new radio is selected/prepared
+        self.play_pause_button.setText('Play')
+        self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87); color: white;')
+        self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
 
     def _toggle_play_pause(self):
         """Toggles between playing and pausing the radio based on the button text.
@@ -593,6 +579,7 @@ class Radio(QWidget):
             QMessageBox.warning(self, "Warning!", "No radio stations to delete.")
             return
 
+        # Prevent deletion of default radios
         if self.selected_radio_name in ['Gooshkon Radio', 'Persian Radio']:
             QMessageBox.warning(self, "Warning!", f"You cannot delete {self.selected_radio_name}.")
             return
@@ -610,6 +597,7 @@ class Radio(QWidget):
                 self.radio_links.pop(index_to_delete)
                 self._save_radio_data() # Save updated lists
 
+                # Determine which radio to select after deletion
                 next_selected_name = None
                 if self.radio_names: # If there are still radios left
                     if index_to_delete < len(self.radio_names):
