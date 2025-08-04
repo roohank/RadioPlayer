@@ -1,0 +1,31 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# تنظیمات محیط مجازی
+venv/
+env/
+
+# فایل‌های سیستم
+.DS_Store
+Thumbs.db
+
+# فایل‌های حساس
+amozesh403_bot.session
+Deep_Translator_for_133_bot.session
+config.json
+*.ini
+*.env
+token.txt
+
+
+# فایل‌های خروجی
+*.log
+*.csv
+*.xlsx
+*.db
+
+# پوشه‌های ارسالی موقت
+downloads/
+ 
