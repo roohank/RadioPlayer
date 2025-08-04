@@ -2,6 +2,7 @@ import sys
 import webbrowser
 import json
 import os
+import datetime # New: For generating unique filenames for recordings
 
 import vlc
 from PyQt6.QtWidgets import (
@@ -24,8 +25,18 @@ class Radio(QWidget):
         self.player = self.instance.media_player_new()
         self.player.audio_set_volume(50)
 
+        # New: Player instance for recording
+        self.recorder_player = None
+        self.is_recording = False
+        self.recordings_folder = "Recordings" # Folder to save recordings
+
         self._load_radio_data()
         self._init_ui()
+        
+        # Ensure recordings folder exists
+        if not os.path.exists(self.recordings_folder):
+            os.makedirs(self.recordings_folder)
+
 
     def _check_vlc_installation(self):
         """Checks if VLC is installed and prompts for installation if not."""
@@ -141,28 +152,34 @@ class Radio(QWidget):
         self.volume_slider.valueChanged.connect(self._set_volume)
         radio_layout.addWidget(self.volume_slider, 1, 1, 1, 2)
 
-        # --- MODIFIED: Play/Pause Button ---
         self.play_pause_button = QPushButton('Play')
         self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
         self.play_pause_button.setGeometry(20, 230, 50, 25)
         self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87)')
-        self.play_pause_button.clicked.connect(self._toggle_play_pause) # Connect to new toggle method
+        self.play_pause_button.clicked.connect(self._toggle_play_pause)
         radio_layout.addWidget(self.play_pause_button, 2, 0)
 
-        # --- NEW: Stop Button ---
         self.stop_button = QPushButton('Stop')
         self.stop_button.setShortcut(QKeySequence('Ctrl+S'))
-        self.stop_button.setGeometry(75, 230, 50, 25) # Position next to Play/Pause
+        self.stop_button.setGeometry(75, 230, 50, 25)
         self.stop_button.setStyleSheet('background-color: rgb(200, 87, 46);')
-        self.stop_button.clicked.connect(self.stop_player) # Connect to dedicated stop method
+        self.stop_button.clicked.connect(self.stop_player)
         radio_layout.addWidget(self.stop_button, 2, 1)
-        # ------------------------------------
+
+        # --- NEW: Record Button ---
+        self.record_button = QPushButton('Record')
+        self.record_button.setShortcut(QKeySequence('Ctrl+R'))
+        self.record_button.setGeometry(130, 230, 70, 25) # Position next to Stop
+        self.record_button.setStyleSheet('background-color: rgb(170, 0, 0);') # Red for Record
+        self.record_button.clicked.connect(self._toggle_record)
+        radio_layout.addWidget(self.record_button, 2, 2)
+        # ---------------------------
 
         self.link_input = QLineEdit()
         self.link_input.setAccessibleName('Enter Link For Play')
-        self.link_input.setGeometry(130, 230, 100, 20) # Adjusted position for new stop button
+        self.link_input.setGeometry(205, 230, 50, 20) # Adjusted position for new record button
         self.link_input.setStyleSheet('background-color: rgb(10, 10, 10)')
-        radio_layout.addWidget(self.link_input, 2, 2) # Now spans 1 column
+        radio_layout.addWidget(self.link_input, 2, 3) # Now spans 1 column
 
         add_btn = QPushButton('Add Radio')
         add_btn.setAccessibleName('Add New Radio')
@@ -191,7 +208,8 @@ class Radio(QWidget):
         """Displays a dialog to allow the user to add a new radio station,
         pre-filling the name field with the currently selected radio's name.
         """
-        self.stop_player() # Stop current playback before showing dialog
+        self.stop_player()
+        self._stop_recording() # Ensure recording is stopped
 
         self.add_dialog = QDialog(self)
         self.add_dialog.setWindowTitle('Add New Radio')
@@ -284,8 +302,8 @@ class Radio(QWidget):
             self.lcd.hide()
             self.info_display.show()
             self.info_display.setText("   No radios available. Add a new one!")
-            self.current_link = ""
-            self.stop_player() # Ensure player is stopped and button is "Play"
+            self.stop_player()
+            self._stop_recording() # Ensure recording is stopped
             return
 
         self.selected_radio_name = self.radio_combo_box.currentText()
@@ -306,12 +324,13 @@ class Radio(QWidget):
             QMessageBox.critical(self, "Error", "Selected radio not found in internal list. Please check data integrity.")
             self.current_link = ""
             self.stop_player()
+            self._stop_recording()
         except Exception as e:
             QMessageBox.critical(self, "VLC Error", f"Failed to prepare media: {e}")
             self.current_link = ""
             self.stop_player()
+            self._stop_recording()
 
-        # Reset Play/Pause button to 'Play' when a new radio is selected
         self.play_pause_button.setText('Play')
         self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87)')
         self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
@@ -321,7 +340,6 @@ class Radio(QWidget):
         direct_link = self.link_input.text().strip()
 
         if self.play_pause_button.text() == 'Play':
-            # Handle playing
             if direct_link:
                 try:
                     media = self.instance.media_new(direct_link)
@@ -354,10 +372,9 @@ class Radio(QWidget):
             self.player.audio_set_mute(0)
             self.play_pause_button.setText('Pause')
             self.play_pause_button.setStyleSheet('background-color: rgb(255, 165, 0);') # Orange for Pause
-            self.play_pause_button.setShortcut(QKeySequence('Ctrl+P')) # Keep same shortcut for toggle
+            self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
 
         elif self.play_pause_button.text() == 'Pause':
-            # Handle pausing
             self.player.pause()
             self.info_display.show()
             self.info_display.setText(f"   Paused: {self.selected_radio_name or direct_link}")
@@ -372,19 +389,89 @@ class Radio(QWidget):
         self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);') # Green for Play
         self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
         self.info_display.hide()
-        self.lcd.show() # Return to LCD display after stopping
-        if self.link_input.text().strip(): # Clear direct link input only if it was used
+        self.lcd.show()
+        if self.link_input.text().strip():
             self.link_input.clear()
+        self._stop_recording() # New: Stop recording when player stops
 
     def _set_volume(self, value):
         """Sets the volume of the VLC media player based on the slider value."""
         self.player.audio_set_volume(value)
 
+
+    def _toggle_record(self):
+        """Toggles recording of the current stream."""
+        if not self.player.is_playing():
+            QMessageBox.warning(self, "Recording Error", "Please play a radio station or direct link before recording.")
+            return
+
+        if not self.is_recording:
+            # Start recording
+            stream_link = self.link_input.text().strip() if self.link_input.text().strip() else self.current_link
+
+            if not stream_link:
+                QMessageBox.warning(self, "Recording Error", "No stream link available to record.")
+                return
+
+            # Generate unique filename
+            now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            file_name = f"RadioRecord_{now}.mp3" # You can choose other formats like .ogg, .wav
+            file_path = os.path.join(self.recordings_folder, file_name)
+
+            # VLC options for recording (transcoding to MP3)
+            # Corrected f-string syntax and simplified recording options for file output
+            # This option transcodes the audio to MP3 and saves it to the specified file path.
+            record_options = f":sout=#transcode{{vcodec=none,acodec=mp3,ab=128,channels=2,samplerate=44100}}:std{{access=file,mux=mp3,dst='{file_path}'}}"
+
+            try:
+                # Create a new media object specifically for recording
+                record_media = self.instance.media_new(stream_link, record_options)
+                # Create a new player for this media
+                self.recorder_player = self.instance.media_player_new()
+                self.recorder_player.set_media(record_media)
+                self.recorder_player.play()
+                
+                # Update UI state
+                self.is_recording = True
+                self.record_button.setText('Stop Recording')
+                self.record_button.setStyleSheet('background-color: rgb(0, 100, 0);') # Dark green when recording
+                self.info_display.show()
+                self.info_display.setText(f"   Recording to: {file_name}")
+                self.lcd.hide()
+
+            except Exception as e:
+                QMessageBox.critical(self, "Recording Error", f"Failed to start recording: {e}\nEnsure VLC is properly configured and the path '{self.recordings_folder}' is writable.")
+                self._stop_recording() # Reset state if error occurs
+        else:
+            # Stop recording
+            self._stop_recording()
+            QMessageBox.information(self, "Recording Complete", f"Recording saved to '{self.recordings_folder}' folder.")
+
+
+
+    def _stop_recording(self):
+        """Stops the recording player if it's active and resets UI."""
+        if self.is_recording and self.recorder_player:
+            self.recorder_player.stop()
+            self.recorder_player = None # Clear the player instance
+            self.is_recording = False
+            self.record_button.setText('Record')
+            self.record_button.setStyleSheet('background-color: rgb(170, 0, 0);') # Red for Record
+            self.info_display.hide()
+            self.lcd.show() # Revert to LCD display
+
+
+    def Volume(self, value): # This method existed in your original code, renamed to _set_volume earlier.
+                             # If Volume is still called from somewhere, keep it. Otherwise, use _set_volume.
+                             # For consistency, I'll update it to call _set_volume.
+        self._set_volume(value)
+
     def _delete_radio(self):
         """Deletes the currently selected radio station from the lists and database.
         Prevents deletion of default radios.
         """
-        self.stop_player()
+        self.stop_player() # Ensure playback and recording are stopped
+        self._stop_recording()
 
         if not self.radio_names:
             QMessageBox.warning(self, "Warning!", "No radio stations to delete.")

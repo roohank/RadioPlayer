@@ -1,10 +1,13 @@
 # Radio Player Master
 
-Radio Player Master is a simple desktop application built with PyQt6 and VLC, allowing you to listen to online radio stations. You can play pre-defined stations, add new ones, delete existing ones, and even play direct radio stream links.
+Radio Player Master is a simple desktop application built with PyQt6 and VLC, allowing you to listen to online radio stations. You can play pre-defined stations, add new ones, delete existing ones, play direct radio stream links, and even **record** your favorite broadcasts.
 
 ## Features
 
 * **Play Online Radio:** Listen to your favorite online radio stations.
+* **Play/Pause Functionality:** A single button to toggle between playing and pausing your current broadcast.
+* **Dedicated Stop Button:** A separate button to completely stop the playback.
+* **Record Live Streams:** Record the currently playing radio stream to an MP3 file, saved in a dedicated "Recordings" folder.
 * **Add/Update Radios:** Easily add new radio stations by providing their name and stream URL. You can also update the link of an existing radio by entering its current name and a new link.
 * **Delete Radios:** Remove unwanted radio stations from your list (default stations are protected).
 * **Direct Link Playback:** Play any direct audio stream link.
@@ -46,23 +49,28 @@ Radio Player Master is a simple desktop application built with PyQt6 and VLC, al
     (Assuming your main application file is named `main_radio_app.py`)
 
 2.  **Select a Radio:** Use the dropdown (combo box) to select a pre-defined radio station.
-3.  **Play/Stop:** Click the "Play" button to start listening. It will change to "Stop" while playing.
-4.  **Direct Link:** Enter an audio stream URL into the "Enter Link For Play" field and click "Play" to listen to it directly.
-5.  **Add/Update Radio:** Click the "Add Radio" button.
+3.  **Play/Pause:** Click the "Play" button to start listening. While playing, this button will change to "Pause". Click it again to pause playback.
+4.  **Stop Playback:** Click the separate "Stop" button to completely stop the current broadcast.
+5.  **Record Stream:** Click the "Record" button while a station is playing to start recording. The button will change to "Stop Recording". Click it again to stop and save the recording to the `Recordings` folder.
+6.  **Direct Link:** Enter an audio stream URL into the "Enter Link For Play" field and click "Play" to listen to it directly.
+7.  **Add/Update Radio:** Click the "Add Radio" button.
     * To **add a new radio**, enter a new name and its stream link.
     * To **update an existing radio's link**, ensure the name field contains the exact name of an existing radio, and then enter the new stream link.
-6.  **Delete Radio:** Select a radio from the dropdown and click "Delete Radio" to remove it. (Default radios cannot be deleted).
-7.  **Volume Control:** Use the slider to adjust the volume.
+8.  **Delete Radio:** Select a radio from the dropdown and click "Delete Radio" to remove it. (Default radios cannot be deleted).
+9.  **Volume Control:** Use the slider to adjust the volume.
 
 ---
 
 # مدیریت رادیو پلیر
 
-مدیریت رادیو پلیر یک برنامه دسکتاپ ساده است که با استفاده از PyQt6 و VLC ساخته شده است و به شما امکان می‌دهد به ایستگاه‌های رادیویی آنلاین گوش دهید. شما می‌توانید ایستگاه‌های از پیش تعریف‌شده را پخش کنید، ایستگاه‌های جدید اضافه کنید، ایستگاه‌های موجود را حذف کنید و حتی لینک‌های مستقیم پخش رادیو را پخش کنید.
+مدیریت رادیو پلیر یک برنامه دسکتاپ ساده است که با استفاده از PyQt6 و VLC ساخته شده است و به شما امکان می‌دهد به ایستگاه‌های رادیویی آنلاین گوش دهید. شما می‌توانید ایستگاه‌های از پیش تعریف‌شده را پخش کنید، ایستگاه‌های جدید اضافه کنید، ایستگاه‌های موجود را حذف کنید، لینک‌های مستقیم پخش رادیو را پخش کنید، و حتی پخش‌های مورد علاقه خود را **ضبط** کنید.
 
 ## ویژگی‌ها
 
 * **پخش رادیو آنلاین:** به ایستگاه‌های رادیویی آنلاین مورد علاقه خود گوش دهید.
+* **عملکرد پخش/مکث:** یک دکمه واحد برای جابجایی بین پخش و مکث برنامه در حال اجرا.
+* **دکمه توقف اختصاصی:** یک دکمه جداگانه برای متوقف کردن کامل پخش.
+* **ضبط پخش زنده:** جریان رادیویی در حال پخش را در قالب یک فایل MP3 ضبط کنید که در پوشه اختصاصی "Recordings" ذخیره می‌شود.
 * **افزودن/به‌روزرسانی رادیوها:** به راحتی ایستگاه‌های رادیویی جدید را با ارائه نام و URL پخش آنها اضافه کنید. همچنین می‌توانید با وارد کردن نام فعلی یک رادیوی موجود و یک لینک جدید، لینک آن را به‌روزرسانی کنید.
 * **حذف رادیوها:** ایستگاه‌های رادیویی ناخواسته را از لیست خود حذف کنید (ایستگاه‌های پیش‌فرض محافظت شده‌اند).
 * **پخش لینک مستقیم:** هر لینک مستقیم پخش صوتی را پخش کنید.
@@ -104,13 +112,15 @@ Radio Player Master is a simple desktop application built with PyQt6 and VLC, al
     (با فرض اینکه فایل اصلی برنامه شما `main_radio_app.py` نام دارد)
 
 2.  **انتخاب رادیو:** از منوی کشویی (combo box) برای انتخاب یک ایستگاه رادیویی از پیش تعریف شده استفاده کنید.
-3.  **پخش/توقف:** برای شروع گوش دادن روی دکمه "Play" کلیک کنید. در حین پخش به "Stop" تغییر خواهد کرد.
-4.  **لینک مستقیم:** یک URL پخش صوتی را در فیلد "Enter Link For Play" وارد کرده و برای گوش دادن مستقیم روی "Play" کلیک کنید.
-5.  **افزودن/به‌روزرسانی رادیو:** روی دکمه "Add Radio" کلیک کنید.
+3.  **پخش/مکث:** برای شروع گوش دادن روی دکمه "Play" کلیک کنید. در حین پخش، این دکمه به "Pause" تغییر خواهد کرد. دوباره روی آن کلیک کنید تا پخش مکث شود.
+4.  **توقف پخش:** برای متوقف کردن کامل پخش جاری، روی دکمه جداگانه "Stop" کلیک کنید.
+5.  **ضبط جریان:** در حالی که یک ایستگاه در حال پخش است، روی دکمه "Record" کلیک کنید تا ضبط شروع شود. دکمه به "Stop Recording" تغییر خواهد کرد. برای توقف و ذخیره ضبط، دوباره روی آن کلیک کنید. فایل‌های ضبط شده در پوشه `Recordings` ذخیره می‌شوند.
+6.  **لینک مستقیم:** یک URL پخش صوتی را در فیلد "Enter Link For Play" وارد کرده و برای گوش دادن مستقیم روی "Play" کلیک کنید.
+7.  **افزودن/به‌روزرسانی رادیو:** روی دکمه "Add Radio" کلیک کنید.
     * برای **افزودن رادیوی جدید**، یک نام جدید و لینک پخش آن را وارد کنید.
     * برای **به‌روزرسانی لینک یک رادیوی موجود**، اطمینان حاصل کنید که نام رادیو دقیقاً با نام رادیوی موجود مطابقت دارد و سپس لینک پخش جدید را وارد کنید.
-6.  **حذف رادیو:** یک رادیو را از منوی کشویی انتخاب کرده و برای حذف آن روی "Delete Radio" کلیک کنید. (رادیوهای پیش‌فرض قابل حذف نیستند).
-7.  **کنترل صدا:** از اسلایدر برای تنظیم صدا استفاده کنید.
+8.  **حذف رادیو:** یک رادیو را از منوی کشویی انتخاب کرده و برای حذف آن روی "Delete Radio" کلیک کنید. (رادیوهای پیش‌فرض قابل حذف نیستند).
+9.  **کنترل صدا:** از اسلایدر برای تنظیم صدا استفاده کنید.
 
 ---
 
