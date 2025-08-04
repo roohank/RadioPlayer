@@ -1,0 +1,3 @@
+semidbm
+python-vlc
+PyQt6

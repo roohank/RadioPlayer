@@ -1,0 +1,10 @@
+{
+    "names": [
+        "Gooshkon Radio",
+        "Persian Radio"
+    ],
+    "links": [
+        "http://r.gooshkon.ir:8000/live.ogg",
+        "http://r.pgbu.ir:8000/live"
+    ]
+}

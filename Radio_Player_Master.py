@@ -1,7 +1,8 @@
 import sys
 import webbrowser
-import pickle
-import semidbm
+import json
+import os
+
 import vlc
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QGridLayout, QLabel, QLineEdit,
@@ -13,28 +14,21 @@ from PyQt6.QtGui import QFont, QKeySequence
 class Radio(QWidget):
     def __init__(self):
         super().__init__()
-        # Check for VLC installation and prompt if missing
         self._check_vlc_installation()
 
-        # Set main window properties
         self.setGeometry(100, 100, 260, 320)
         self.setStyleSheet('background-color: rgb(200, 150, 100)')
         self.setWindowTitle('Radio Player Master')
 
-        # Initialize VLC instance and media player
         self.instance = vlc.Instance()
         self.player = self.instance.media_player_new()
-        self.player.audio_set_volume(50) # Initial volume setting
+        self.player.audio_set_volume(50)
 
-        # Load radio data from the database
         self._load_radio_data()
-        # Initialize the user interface
         self._init_ui()
 
     def _check_vlc_installation(self):
-        """Checks if VLC is installed and prompts for installation if not.
-        If VLC's python binding fails to import, it offers to open a download link.
-        """
+        """Checks if VLC is installed and prompts for installation if not."""
         try:
             import vlc
         except ImportError:
@@ -60,10 +54,10 @@ class Radio(QWidget):
                 continue_button.setGeometry(60, 60, 80, 20)
                 version_box.exec()
             elif execute == QMessageBox.StandardButton.No:
-                sys.exit() # Exit if user chooses not to install VLC
+                sys.exit()
 
     def _open_vlc_download(self):
-        """Opens the VLC download page in a web browser based on the selected version."""
+        """Opens the VLC download page based on selected version."""
         if self.win64_radio.isChecked():
             try:
                 webbrowser.open('https://mirror.rasanegar.com/videolan/vlc/3.0.16/win64/vlc-3.0.16-win64.exe')
@@ -74,110 +68,109 @@ class Radio(QWidget):
                 webbrowser.open('https://mirror.rasanegar.com/videolan/vlc/3.0.16/win32/vlc-3.0.16-win32.exe')
             except Exception as e:
                 QMessageBox.warning(self, 'Warning', f'Download failed! Please check your network connection.\nError: {e}')
-        self.sender().parent().close() # Close the version selection dialog
+        self.sender().parent().close()
 
     def _load_radio_data(self):
-        """Loads radio names and links from the database, or initializes them with defaults if not found."""
-        # Default radio stations
+        """Loads radio names and links from a JSON file, or initializes them with defaults if not found or corrupted."""
         default_radio_names = ['Gooshkon Radio', 'Persian Radio']
         default_radio_links = ['http://r.gooshkon.ir:8000/live.ogg', 'http://r.pgbu.ir:8000/live']
+        self.radio_names = []
+        self.radio_links = []
+        
+        self.db_file = 'radios.json'
 
-        try:
-            with semidbm.open('DataBase', 'c') as dbm_name:
-                # Load existing data or use defaults if not present
-                self.radio_names = pickle.loads(dbm_name.get('list_1', pickle.dumps(default_radio_names)))
-                self.radio_links = pickle.loads(dbm_name.get('list_2', pickle.dumps(default_radio_links)))
-
-                # If defaults were just used (database was empty), save them back
-                if not dbm_name.get('list_1'):
-                     dbm_name['list_1'] = pickle.dumps(self.radio_names)
-                if not dbm_name.get('list_2'):
-                    dbm_name['list_2'] = pickle.dumps(self.radio_links)
-        except Exception as e:
-            QMessageBox.critical(self, "Database Error", f"Failed to load or initialize database: {e}")
-            sys.exit(1) # Exit if database operation fails
+        if os.path.exists(self.db_file):
+            try:
+                with open(self.db_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    self.radio_names = data.get('names', default_radio_names)
+                    self.radio_links = data.get('links', default_radio_links)
+            except (json.JSONDecodeError, FileNotFoundError, Exception) as e:
+                QMessageBox.warning(self, "Database Load Error", f"Error loading radios from '{self.db_file}': {e}. Re-initializing database.")
+                self.radio_names = default_radio_names
+                self.radio_links = default_radio_links
+                self._save_radio_data()
+        else:
+            self.radio_names = default_radio_names
+            self.radio_links = default_radio_links
+            self._save_radio_data()
 
     def _save_radio_data(self):
-        """Saves current radio names and links to the database."""
+        """Saves current radio names and links to the JSON file."""
+        data_to_save = {
+            'names': self.radio_names,
+            'links': self.radio_links
+        }
         try:
-            with semidbm.open('DataBase', 'c') as dbm_name:
-                dbm_name['list_1'] = pickle.dumps(self.radio_names)
-                dbm_name['list_2'] = pickle.dumps(self.radio_links)
+            with open(self.db_file, 'w', encoding='utf-8') as f:
+                json.dump(data_to_save, f, indent=4, ensure_ascii=False)
         except Exception as e:
-            QMessageBox.critical(self, "Database Error", f"Failed to save data to database: {e}")
+            QMessageBox.critical(self, "Database Save Error", f"Failed to save data to '{self.db_file}': {e}")
 
     def _init_ui(self):
         """Initializes the user interface elements and their layout."""
         radio_layout = QGridLayout()
         self.setLayout(radio_layout)
 
-        # Radio display (LCD for index, QLineEdit for text info)
         self.lcd = QLCDNumber()
         self.lcd.setGeometry(5, 10, 250, 140)
         self.lcd.setStyleSheet('background-color: rgb(60, 60, 60)')
-        radio_layout.addWidget(self.lcd, 0, 0, 1, 3) # Row 0, Col 0, Span 1 row, Span 3 cols
+        radio_layout.addWidget(self.lcd, 0, 0, 1, 3)
 
         self.info_display = QLineEdit()
         self.info_display.setGeometry(5, 10, 250, 140)
         self.info_display.setFont(QFont('Arial', 10))
         self.info_display.setStyleSheet('background-color: rgb(60, 60, 60)')
         self.info_display.setReadOnly(True)
-        self.info_display.hide() # Initially hidden, LCD is shown
+        self.info_display.hide()
         radio_layout.addWidget(self.info_display, 0, 0, 1, 3)
 
-        # Radio selection ComboBox
         self.radio_combo_box = QComboBox()
         self.radio_combo_box.setAccessibleName("Choose radio:")
         self.radio_combo_box.addItems(self.radio_names)
         self.radio_combo_box.activated.connect(self._on_radio_selected)
         self.radio_combo_box.setGeometry(20, 190, 100, 20)
         self.radio_combo_box.setStyleSheet('background-color: rgb(10, 10, 10)')
-        radio_layout.addWidget(self.radio_combo_box, 1, 0, 1, 1) # Row 1, Col 0, Span 1 col
+        radio_layout.addWidget(self.radio_combo_box, 1, 0, 1, 1)
 
-        # Volume Slider
         self.volume_slider = QSlider()
         self.volume_slider.setAccessibleName('Volume control')
         self.volume_slider.setGeometry(130, 190, 100, 20)
         self.volume_slider.setStyleSheet('background-color: rgb(10, 10, 10)')
-        self.volume_slider.setSliderPosition(self.player.audio_get_volume()) # Set initial slider position
+        self.volume_slider.setSliderPosition(self.player.audio_get_volume())
         self.volume_slider.valueChanged.connect(self._set_volume)
-        radio_layout.addWidget(self.volume_slider, 1, 1, 1, 2) # Row 1, Col 1, Span 2 cols
+        radio_layout.addWidget(self.volume_slider, 1, 1, 1, 2)
 
-        # Play/Stop Button
         self.play_button = QPushButton('Play')
         self.play_button.setShortcut(QKeySequence('Ctrl+P'))
         self.play_button.setGeometry(20, 230, 50, 25)
         self.play_button.setStyleSheet('background-color: rgb(46, 200, 87)')
         self.play_button.clicked.connect(self._toggle_play_stop)
-        radio_layout.addWidget(self.play_button, 2, 0) # Row 2, Col 0
+        radio_layout.addWidget(self.play_button, 2, 0)
 
-        # Direct Link Input
         self.link_input = QLineEdit()
         self.link_input.setAccessibleName('Enter Link For Play')
         self.link_input.setGeometry(80, 230, 150, 20)
         self.link_input.setStyleSheet('background-color: rgb(10, 10, 10)')
-        radio_layout.addWidget(self.link_input, 2, 1, 1, 2) # Row 2, Col 1, Span 2 cols
+        radio_layout.addWidget(self.link_input, 2, 1, 1, 2)
 
-        # Add Radio Button
         add_btn = QPushButton('Add Radio')
         add_btn.setAccessibleName('Add New Radio')
         add_btn.setGeometry(175, 290, 80, 25)
         add_btn.setStyleSheet('background-color: rgb(10, 10, 10)')
         add_btn.clicked.connect(self._show_add_radio_dialog)
         add_btn.setShortcut(QKeySequence('Ctrl+A'))
-        radio_layout.addWidget(add_btn, 3, 2) # Row 3, Col 2
+        radio_layout.addWidget(add_btn, 3, 2)
 
-        # Delete Radio Button
         delete_btn = QPushButton('Delete Radio')
         delete_btn.setAccessibleName('Delete Radio')
         delete_btn.clicked.connect(self._delete_radio)
         delete_btn.setShortcut(QKeySequence('Ctrl+D'))
         delete_btn.setGeometry(90, 290, 80, 25)
         delete_btn.setStyleSheet('background-color: rgb(10, 10, 10)')
-        radio_layout.addWidget(delete_btn, 3, 1) # Row 3, Col 1
+        radio_layout.addWidget(delete_btn, 3, 1)
 
-        # Initialize display with the first radio station
-        if self.radio_names: # Ensure there's at least one radio
+        if self.radio_names:
             self._on_radio_selected()
         else:
             self.lcd.hide()
@@ -185,8 +178,10 @@ class Radio(QWidget):
             self.info_display.setText("   No radios found. Add a new one!")
 
     def _show_add_radio_dialog(self):
-        """Displays a dialog to allow the user to add a new radio station."""
-        self.stop_player() # Stop current playback before showing dialog
+        """Displays a dialog to allow the user to add a new radio station,
+        pre-filling the name field with the currently selected radio's name.
+        """
+        self.stop_player()
 
         self.add_dialog = QDialog(self)
         self.add_dialog.setWindowTitle('Add New Radio')
@@ -200,54 +195,102 @@ class Radio(QWidget):
         self.new_radio_name_input = QLineEdit(self.add_dialog)
         self.new_radio_name_input.setGeometry(75, 10, 110, 20)
         self.new_radio_name_input.setPlaceholderText('Enter Radio Name')
+        
+        # --- NEW FEATURE: Pre-fill radio name ---
+        if self.radio_names: # Only pre-fill if there are radios in the list
+            self.new_radio_name_input.setText(self.selected_radio_name)
+        # ----------------------------------------
 
         self.new_radio_link_input = QLineEdit(self.add_dialog)
         self.new_radio_link_input.setGeometry(75, 40, 110, 20)
         self.new_radio_link_input.setPlaceholderText('Enter Radio Link')
 
         add_button = QPushButton("Add", self.add_dialog)
-        add_button.clicked.connect(self._add_radio_to_list)
+        add_button.clicked.connect(self._add_or_update_radio) # Changed this connection
         add_button.setGeometry(45, 70, 50, 20)
 
         cancel_button = QPushButton("Cancel", self.add_dialog)
-        cancel_button.clicked.connect(self.add_dialog.reject) # Use reject to close dialog
+        cancel_button.clicked.connect(self.add_dialog.reject)
         cancel_button.setGeometry(105, 70, 50, 20)
 
-        self.add_dialog.exec() # Show the dialog as modal
+        self.add_dialog.exec()
 
-    def _add_radio_to_list(self):
-        """Adds the new radio station to the internal lists and saves it to the database.
-        Also updates the QComboBox and selects the newly added item.
-        """
+    def _add_or_update_radio(self):
+        """Adds a new radio or updates an existing one based on user input."""
         new_name = self.new_radio_name_input.text().strip()
         new_link = self.new_radio_link_input.text().strip()
 
-        if not new_name or not new_link:
-            QMessageBox.warning(self, "Input Error", "Both radio name and link must be provided.")
+        if not new_name:
+            QMessageBox.warning(self, "Input Error", "Radio name must be provided.")
+            return
+        if not new_link:
+            QMessageBox.warning(self, "Input Error", "Radio link must be provided.")
             return
 
+        # Check if the name already exists AND is the currently selected radio's name
+        # This indicates an attempt to update the current radio's link
+        if new_name == self.selected_radio_name and new_name in self.radio_names:
+            try:
+                index_to_update = self.radio_names.index(new_name)
+                # --- NEW FEATURE: Update existing link ---
+                self.radio_links[index_to_update] = new_link
+                self._save_radio_data()
+                QMessageBox.information(self, "Success", f"Link for '{new_name}' updated successfully.")
+                self.add_dialog.accept()
+                self._refresh_radio_list_and_selection(new_name) # Refresh and re-select
+                return
+                # ------------------------------------------
+            except ValueError:
+                # This case should ideally not happen if new_name == self.selected_radio_name
+                QMessageBox.critical(self, "Error", "Selected radio not found during update (this shouldn't happen).")
+                self.add_dialog.reject()
+                return
+
+        # If name is new, or existing but not the currently selected one, add as new
         if new_name in self.radio_names:
-            QMessageBox.warning(self, "Input Error", "A radio with this name already exists.")
+            QMessageBox.warning(self, "Input Error", "A radio with this name already exists. Please choose a different name.")
             return
 
+        # --- EXISTING FEATURE: Add new radio ---
         self.radio_names.append(new_name)
         self.radio_links.append(new_link)
-        self._save_radio_data() # Save updated lists to database
+        self._save_radio_data()
+        QMessageBox.information(self, "Success", f"'{new_name}' added successfully.")
+        self.add_dialog.accept()
+        self._refresh_radio_list_and_selection(new_name) # Refresh and select the new radio
+        # ---------------------------------------
 
-        self.radio_combo_box.addItem(new_name) # Add to UI combobox
-        self.radio_combo_box.setCurrentText(new_name) # Select the newly added item
-        self._on_radio_selected() # Update display based on new selection
-
-        self.add_dialog.accept() # Close the dialog successfully
+    def _refresh_radio_list_and_selection(self, selected_name):
+        """Refreshes the combo box items and sets the selection."""
+        self.radio_combo_box.clear()
+        self.radio_combo_box.addItems(self.radio_names)
+        if selected_name in self.radio_names:
+            self.radio_combo_box.setCurrentText(selected_name)
+        else: # Fallback to first item if the desired one isn't found (e.g. after deleting)
+            if self.radio_names:
+                self.radio_combo_box.setCurrentIndex(0)
+            else:
+                self.lcd.hide()
+                self.info_display.show()
+                self.info_display.setText("   No radios found. Add a new one!")
+                self.current_link = ""
+        self._on_radio_selected() # Call this to update player media and display
 
     def _on_radio_selected(self):
-        """Updates the display and prepares the VLC player when a radio is selected from the ComboBox.
-        This method is connected to the activated signal of the QComboBox.
-        """
+        """Updates the display and prepares the VLC player when a radio is selected from the ComboBox."""
+        if not self.radio_names: # Handle case where list is empty
+            self.selected_radio_name = ""
+            self.selected_radio_index = -1
+            self.lcd.hide()
+            self.info_display.show()
+            self.info_display.setText("   No radios available. Add a new one!")
+            self.current_link = ""
+            self.stop_player()
+            return
+
         self.selected_radio_name = self.radio_combo_box.currentText()
         self.selected_radio_index = self.radio_combo_box.currentIndex()
 
-        # Update LCD to show the index
         self.lcd.setNumDigits(len(str(self.selected_radio_index + 1)))
         self.lcd.display(self.selected_radio_index + 1)
         self.info_display.hide()
@@ -256,21 +299,18 @@ class Radio(QWidget):
         try:
             link_index = self.radio_names.index(self.selected_radio_name)
             self.current_link = self.radio_links[link_index]
-
-            # Prepare media but don't play yet
             media = self.instance.media_new(self.current_link)
             self.player.set_media(media)
-            self.player.audio_set_mute(0) # Ensure not muted
+            self.player.audio_set_mute(0)
         except ValueError:
             QMessageBox.critical(self, "Error", "Selected radio not found in internal list. Please check data integrity.")
-            self.current_link = "" # Reset link
-            self.stop_player() # Ensure player is stopped
+            self.current_link = ""
+            self.stop_player()
         except Exception as e:
             QMessageBox.critical(self, "VLC Error", f"Failed to prepare media: {e}")
             self.current_link = ""
             self.stop_player()
 
-        # Reset play button state
         self.play_button.setText('Play')
         self.play_button.setStyleSheet('background-color: rgb(46, 200, 87)')
         self.play_button.setShortcut(QKeySequence('Ctrl+P'))
@@ -282,9 +322,7 @@ class Radio(QWidget):
         direct_link = self.link_input.text().strip()
 
         if self.play_button.text() == 'Play':
-            # Logic for playing
             if direct_link:
-                # Play from direct link
                 try:
                     media = self.instance.media_new(direct_link)
                     self.player.set_media(media)
@@ -297,8 +335,10 @@ class Radio(QWidget):
                     self.stop_player()
                     return
             else:
-                # Play from selected combo box item
-                if not self.current_link: # Ensure a link is selected from combobox
+                if not self.radio_names:
+                    QMessageBox.warning(self, "Selection Error", "No radio stations available. Please add a new one or select from the list.")
+                    return
+                if not self.current_link:
                     QMessageBox.warning(self, "Selection Error", "Please select a radio station first.")
                     return
                 try:
@@ -311,17 +351,16 @@ class Radio(QWidget):
                     self.stop_player()
                     return
 
-            self.player.audio_set_mute(0) # Ensure not muted during playback
+            self.player.audio_set_mute(0)
             self.play_button.setText('Stop')
             self.play_button.setStyleSheet('background-color: rgb(200, 87, 46);')
             self.play_button.setShortcut(QKeySequence('Ctrl+S'))
         else:
-            # Logic for stopping
             self.stop_player()
-            if direct_link: # Clear direct link input only if it was used for playback
+            if direct_link:
                 self.link_input.clear()
             self.info_display.hide()
-            self.lcd.show() # Show LCD again after stopping direct link playback
+            self.lcd.show()
 
     def stop_player(self):
         """Stops the VLC media player and resets the play button state."""
@@ -338,9 +377,12 @@ class Radio(QWidget):
         """Deletes the currently selected radio station from the lists and database.
         Prevents deletion of default radios.
         """
-        self.stop_player() # Stop current playback before deletion
+        self.stop_player()
 
-        # Prevent deletion of default radios
+        if not self.radio_names:
+            QMessageBox.warning(self, "Warning!", "No radio stations to delete.")
+            return
+
         if self.selected_radio_name in ['Gooshkon Radio', 'Persian Radio']:
             QMessageBox.warning(self, "Warning!", f"You cannot delete {self.selected_radio_name}.")
             return
@@ -356,22 +398,25 @@ class Radio(QWidget):
                 index_to_delete = self.radio_names.index(self.selected_radio_name)
                 self.radio_names.pop(index_to_delete)
                 self.radio_links.pop(index_to_delete)
-                self._save_radio_data() # Save updated lists to database
+                self._save_radio_data()
 
-                # Update ComboBox after deletion
-                self.radio_combo_box.clear()
-                self.radio_combo_box.addItems(self.radio_names)
+                # Determine which radio to select after deletion
+                next_selected_name = None
                 if self.radio_names:
-                    self.radio_combo_box.setCurrentIndex(0) # Select the first item if list is not empty
-                self._on_radio_selected() # Refresh display based on new selection
+                    # Try to select the same index if possible, otherwise the first
+                    if index_to_delete < len(self.radio_names):
+                        next_selected_name = self.radio_names[index_to_delete]
+                    else:
+                        next_selected_name = self.radio_names[0]
+                
+                self._refresh_radio_list_and_selection(next_selected_name)
                 QMessageBox.information(self, "Success", f"'{self.selected_radio_name}' deleted successfully.")
+
             except ValueError:
                 QMessageBox.critical(self, "Error", "Selected radio not found in list (this shouldn't happen).")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"An unexpected error occurred during deletion: {e}")
-        # If user clicks No, do nothing
 
-# Main application entry point
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     w = Radio()
