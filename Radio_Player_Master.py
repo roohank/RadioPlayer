@@ -83,7 +83,7 @@ class Radio(QWidget):
     def _load_radio_data(self):
         """Loads radio names and links from a JSON file, or initializes them with defaults if not found or corrupted."""
         default_radio_names = ['Gooshkon Radio', 'Persian Radio']
-        default_radio_links = ['http://r.gooshkon.ir:8000/live.ogg', 'http://r.pgbu.ir:8000/live']
+        default_radio_links = ['https://r.gooshkon.ir:443/live.ogg', 'http://r.pgbu.ir:8000/live']
         self.radio_names = []
         self.radio_links = []
         
@@ -144,6 +144,7 @@ class Radio(QWidget):
         self.prev_button.setIconSize(QSize(24, 24))
         self.prev_button.setStyleSheet('background-color: rgb(10, 10, 10);')
         self.prev_button.clicked.connect(self._go_to_previous_radio)
+        self.prev_button.setAccessibleName('Previous Radio') # New: Accessible name for screen readers
         navigation_and_volume_layout.addWidget(self.prev_button)
 
         self.radio_combo_box = QComboBox()
@@ -160,6 +161,7 @@ class Radio(QWidget):
         self.next_button.setIconSize(QSize(24, 24))
         self.next_button.setStyleSheet('background-color: rgb(10, 10, 10);')
         self.next_button.clicked.connect(self._go_to_next_radio)
+        self.next_button.setAccessibleName('Next Radio') # New: Accessible name for screen readers
         navigation_and_volume_layout.addWidget(self.next_button)
 
         self.volume_slider = QSlider(Qt.Orientation.Horizontal)
@@ -182,6 +184,7 @@ class Radio(QWidget):
         self.play_pause_button.setIconSize(QSize(24, 24))
         self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
         self.play_pause_button.clicked.connect(self._toggle_play_pause)
+        self.play_pause_button.setAccessibleName('Play/Pause') # New: Accessible name for screen readers
         playback_controls_layout.addWidget(self.play_pause_button)
 
         # Stop Button with icon
@@ -191,6 +194,7 @@ class Radio(QWidget):
         self.stop_button.setIconSize(QSize(24, 24))
         self.stop_button.setStyleSheet('background-color: rgb(200, 87, 46);')
         self.stop_button.clicked.connect(self.stop_player)
+        self.stop_button.setAccessibleName('Stop') # New: Accessible name for screen readers
         playback_controls_layout.addWidget(self.stop_button)
 
         # Record Button with icon
@@ -200,6 +204,7 @@ class Radio(QWidget):
         self.record_button.setIconSize(QSize(24, 24))
         self.record_button.setStyleSheet('background-color: rgb(170, 0, 0);')
         self.record_button.clicked.connect(self._toggle_record)
+        self.record_button.setAccessibleName('Record') # New: Accessible name for screen readers
         playback_controls_layout.addWidget(self.record_button)
         
         radio_layout.addLayout(playback_controls_layout, 2, 0, 1, 2)
