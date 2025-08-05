@@ -44,6 +44,7 @@ class Radio(QWidget):
         self._load_radio_data()
         self._init_ui()
         
+
     def _check_vlc_installation(self):
         """Checks if VLC Python bindings can be imported. If not, prompts the user to install VLC Media Player."""
         try:
@@ -129,24 +130,25 @@ class Radio(QWidget):
         radio_layout = QGridLayout()
         self.setLayout(radio_layout)
 
+        # Container for display widgets
         display_container = QWidget()
         display_layout = QVBoxLayout()
         display_container.setLayout(display_layout)
         display_layout.setContentsMargins(0, 0, 0, 0)
         display_layout.setSpacing(0)
 
+        # LCD for number display
         self.lcd = QLCDNumber()
         self.lcd.setStyleSheet('background-color: rgb(60, 60, 60); border: none;')
         display_layout.addWidget(self.lcd)
 
-        # Using a single QLabel for combined title and metadata
+        # New: Use a single QLabel for combined title and metadata
         self.metadata_display = QLabel()
         self.metadata_display.setFont(QFont('Arial', 10, QFont.Weight.Bold))
         self.metadata_display.setStyleSheet('background-color: rgb(60, 60, 60); color: white; padding: 5px; border: none;')
         self.metadata_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.metadata_display.setWordWrap(True)
-        self.metadata_display.setAccessibleName("Now Playing Information")
-        self.metadata_display.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.metadata_display.setFocusPolicy(Qt.FocusPolicy.StrongFocus) # Make it focusable
         self.metadata_display.hide()
         display_layout.addWidget(self.metadata_display)
 
@@ -286,9 +288,9 @@ class Radio(QWidget):
         # New: Use a single QLabel for combined display
         if self.last_metadata != current_metadata_text:
             self.metadata_display.setText(current_metadata_text)
-            self.metadata_display.setAccessibleName(current_metadata_text)
             self.last_metadata = current_metadata_text
             self.metadata_display.show()
+            self.metadata_display.setAccessibleName(current_metadata_text)
             self.lcd.hide()
 
     def _go_to_next_radio(self):
@@ -419,7 +421,7 @@ class Radio(QWidget):
             self.lcd.hide()
             self.metadata_display.show()
             self.metadata_display.setText("   No radios available. Add a new one!")
-            self.metadata_display.setAccessibleName("   No radios found. Add a new one!")
+            self.metadata_display.setAccessibleName("   No radios available. Add a new one!")
             self.stop_player()
             self._stop_recording()
             return
@@ -430,7 +432,6 @@ class Radio(QWidget):
         self.lcd.setNumDigits(len(str(self.selected_radio_index + 1)))
         self.lcd.display(self.selected_radio_index + 1)
         
-        # New: Set initial text for metadata_display
         self.metadata_display.setText(self.selected_radio_name)
         self.metadata_display.setAccessibleName(self.selected_radio_name)
         self.metadata_display.show()
@@ -477,8 +478,9 @@ class Radio(QWidget):
             self.play_pause_button.setIcon(QIcon('icons/play.png'))
             self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
             
-            self.metadata_display.setText(f"   Paused: {self.selected_radio_name or direct_link}")
-            self.metadata_display.setAccessibleName(f"   Paused: {self.selected_radio_name or direct_link}")
+            paused_text = f"Paused: {self.selected_radio_name or direct_link}"
+            self.metadata_display.setText(paused_text)
+            self.metadata_display.setAccessibleName(paused_text)
             
             self.metadata_timer.stop()
         else:
@@ -490,8 +492,10 @@ class Radio(QWidget):
                     media = self.instance.media_new(direct_link)
                     self.player.set_media(media)
                     self.player.play()
-                    self.metadata_display.setText(f"   Playing: {direct_link}")
-                    self.metadata_display.setAccessibleName(f"   Playing: {direct_link}")
+                    
+                    playing_text = f"Playing: {direct_link}"
+                    self.metadata_display.setText(playing_text)
+                    self.metadata_display.setAccessibleName(playing_text)
                     self.metadata_timer.start()
                 except Exception as e:
                     QMessageBox.warning(self, "Playback Error", f"Could not play direct link: {e}\nPlease check the link format or network connection.")
@@ -504,8 +508,9 @@ class Radio(QWidget):
                     return
                 try:
                     self.player.play()
-                    self.metadata_display.setText(self.selected_radio_name)
-                    self.metadata_display.setAccessibleName(self.selected_radio_name)
+                    playing_text = f"Playing: {self.selected_radio_name}"
+                    self.metadata_display.setText(playing_text)
+                    self.metadata_display.setAccessibleName(playing_text)
                     self.metadata_timer.start()
                 except Exception as e:
                     QMessageBox.warning(self, "Playback Error", f"Could not play selected radio: {e}\nPlease check network connection.")
