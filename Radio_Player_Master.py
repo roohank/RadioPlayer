@@ -16,16 +16,17 @@ from PyQt6.QtCore import Qt, QSize, QTimer
 class Radio(QWidget):
     def __init__(self):
         super().__init__()
-        # Ensure native window decorations (min/max/close buttons) are enabled
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.Window)
 
+        # New: VLC options for faster playback (0 ms buffering)
+        self.vlc_options = "--network-caching=0"
         self._check_vlc_installation()
 
-        self.setGeometry(100, 100, 300, 360) 
+        self.setGeometry(100, 100, 300, 360)
         self.setStyleSheet('background-color: rgb(200, 150, 100)')
         self.setWindowTitle('Radio Player Master')
 
-        self.instance = vlc.Instance()
+        self.instance = vlc.Instance(self.vlc_options)
         self.player = self.instance.media_player_new()
         self.player.audio_set_volume(50)
 
@@ -36,7 +37,7 @@ class Radio(QWidget):
 
         self.recorder_player = None
         self.is_recording = False
-        self.recordings_folder = "Recordings" 
+        self.recordings_folder = "Recordings"
         
         if not os.path.exists(self.recordings_folder):
             os.makedirs(self.recordings_folder)
@@ -59,7 +60,7 @@ class Radio(QWidget):
             if execute == QMessageBox.StandardButton.Yes:
                 version_box = QDialog(self)
                 version_box.setWindowTitle('Select Version')
-                version_box.setGeometry(130, 150, 200, 90)
+                version_box.setGeometry(130, 250, 200, 90)
 
                 self.win64_radio = QRadioButton("VLC media player win64", version_box)
                 self.win64_radio.setChecked(True)
@@ -130,25 +131,22 @@ class Radio(QWidget):
         radio_layout = QGridLayout()
         self.setLayout(radio_layout)
 
-        # Container for display widgets
         display_container = QWidget()
         display_layout = QVBoxLayout()
         display_container.setLayout(display_layout)
         display_layout.setContentsMargins(0, 0, 0, 0)
         display_layout.setSpacing(0)
 
-        # LCD for number display
         self.lcd = QLCDNumber()
         self.lcd.setStyleSheet('background-color: rgb(60, 60, 60); border: none;')
         display_layout.addWidget(self.lcd)
 
-        # New: Use a single QLabel for combined title and metadata
         self.metadata_display = QLabel()
         self.metadata_display.setFont(QFont('Arial', 10, QFont.Weight.Bold))
         self.metadata_display.setStyleSheet('background-color: rgb(60, 60, 60); color: white; padding: 5px; border: none;')
         self.metadata_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.metadata_display.setWordWrap(True)
-        self.metadata_display.setFocusPolicy(Qt.FocusPolicy.StrongFocus) # Make it focusable
+        self.metadata_display.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.metadata_display.hide()
         display_layout.addWidget(self.metadata_display)
 
@@ -191,8 +189,17 @@ class Radio(QWidget):
 
         radio_layout.addLayout(navigation_and_volume_layout, 1, 0, 1, 3)
 
-        playback_controls_layout = QHBoxLayout()
+        playback_and_seek_layout = QHBoxLayout()
         
+        self.rewind_button = QPushButton()
+        self.rewind_button.setShortcut(QKeySequence('Left'))
+        self.rewind_button.setIcon(QIcon('icons/rewind.png'))
+        self.rewind_button.setIconSize(QSize(24, 24))
+        self.rewind_button.setStyleSheet('background-color: rgb(10, 10, 10);')
+        self.rewind_button.clicked.connect(self._go_backward)
+        self.rewind_button.setAccessibleName('Go Backward')
+        playback_and_seek_layout.addWidget(self.rewind_button)
+
         self.play_pause_button = QPushButton()
         self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
         self.play_pause_button.setIcon(QIcon('icons/play.png'))
@@ -200,8 +207,8 @@ class Radio(QWidget):
         self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
         self.play_pause_button.clicked.connect(self._toggle_play_pause)
         self.play_pause_button.setAccessibleName('Play/Pause')
-        playback_controls_layout.addWidget(self.play_pause_button)
-
+        playback_and_seek_layout.addWidget(self.play_pause_button)
+        
         self.stop_button = QPushButton()
         self.stop_button.setShortcut(QKeySequence('Ctrl+S'))
         self.stop_button.setIcon(QIcon('icons/stop.png'))
@@ -209,7 +216,16 @@ class Radio(QWidget):
         self.stop_button.setStyleSheet('background-color: rgb(200, 87, 46);')
         self.stop_button.clicked.connect(self.stop_player)
         self.stop_button.setAccessibleName('Stop')
-        playback_controls_layout.addWidget(self.stop_button)
+        playback_and_seek_layout.addWidget(self.stop_button)
+
+        self.forward_button = QPushButton()
+        self.forward_button.setShortcut(QKeySequence('Right'))
+        self.forward_button.setIcon(QIcon('icons/forward.png'))
+        self.forward_button.setIconSize(QSize(24, 24))
+        self.forward_button.setStyleSheet('background-color: rgb(10, 10, 10);')
+        self.forward_button.clicked.connect(self._go_forward)
+        self.forward_button.setAccessibleName('Go Forward')
+        playback_and_seek_layout.addWidget(self.forward_button)
 
         self.record_button = QPushButton()
         self.record_button.setShortcut(QKeySequence('Ctrl+R'))
@@ -218,15 +234,15 @@ class Radio(QWidget):
         self.record_button.setStyleSheet('background-color: rgb(170, 0, 0);')
         self.record_button.clicked.connect(self._toggle_record)
         self.record_button.setAccessibleName('Record')
-        playback_controls_layout.addWidget(self.record_button)
+        playback_and_seek_layout.addWidget(self.record_button)
         
-        radio_layout.addLayout(playback_controls_layout, 2, 0, 1, 2)
+        radio_layout.addLayout(playback_and_seek_layout, 2, 0, 1, 3)
 
         self.link_input = QLineEdit()
         self.link_input.setAccessibleName('Enter Link For Play')
         self.link_input.setPlaceholderText("Enter Direct Link")
         self.link_input.setStyleSheet('background-color: rgb(10, 10, 10); color: white;')
-        radio_layout.addWidget(self.link_input, 2, 2, 1, 1)
+        radio_layout.addWidget(self.link_input, 3, 0, 1, 3)
 
         management_buttons_layout = QHBoxLayout()
         
@@ -250,7 +266,7 @@ class Radio(QWidget):
         add_btn.setStyleSheet('background-color: rgb(10, 10, 10); color: white;')
         management_buttons_layout.addWidget(add_btn)
 
-        radio_layout.addLayout(management_buttons_layout, 3, 1, 1, 2)
+        radio_layout.addLayout(management_buttons_layout, 4, 1, 1, 2)
 
         radio_layout.setColumnStretch(0, 1)
         radio_layout.setColumnStretch(1, 1)
@@ -260,9 +276,10 @@ class Radio(QWidget):
         radio_layout.setRowStretch(1, 1)
         radio_layout.setRowStretch(2, 1)
         radio_layout.setRowStretch(3, 1)
+        radio_layout.setRowStretch(4, 1)
 
         if self.radio_names:
-            self._on_radio_selected(play_on_select=False) 
+            self._on_radio_selected(play_on_select=False)
         else:
             self.lcd.hide()
             self.metadata_display.show()
@@ -278,20 +295,28 @@ class Radio(QWidget):
         title = media.get_meta(vlc.Meta.Title)
         artist = media.get_meta(vlc.Meta.Artist)
 
-        # Combine radio name and metadata into a single string
         current_metadata_text = self.selected_radio_name
         if title:
             current_metadata_text += f" - {title}"
             if artist:
                 current_metadata_text += f" ({artist})"
         
-        # New: Use a single QLabel for combined display
         if self.last_metadata != current_metadata_text:
             self.metadata_display.setText(current_metadata_text)
             self.last_metadata = current_metadata_text
             self.metadata_display.show()
             self.metadata_display.setAccessibleName(current_metadata_text)
             self.lcd.hide()
+
+    def _go_to_previous_radio(self):
+        """Navigates to the previous radio in the list and plays it automatically."""
+        if not self.radio_names:
+            QMessageBox.information(self, "Navigation", "No radio stations to navigate.")
+            return
+        current_index = self.radio_combo_box.currentIndex()
+        prev_index = (current_index - 1 + len(self.radio_names)) % len(self.radio_names)
+        self.radio_combo_box.setCurrentIndex(prev_index)
+        self._on_radio_selected(play_on_select=True)
 
     def _go_to_next_radio(self):
         """Navigates to the next radio in the list and plays it automatically."""
@@ -303,15 +328,17 @@ class Radio(QWidget):
         self.radio_combo_box.setCurrentIndex(next_index)
         self._on_radio_selected(play_on_select=True)
 
-    def _go_to_previous_radio(self):
-        """Navigates to the previous radio in the list and plays it automatically."""
-        if not self.radio_names:
-            QMessageBox.information(self, "Navigation", "No radio stations to navigate.")
-            return
-        current_index = self.radio_combo_box.currentIndex()
-        prev_index = (current_index - 1 + len(self.radio_names)) % len(self.radio_names)
-        self.radio_combo_box.setCurrentIndex(prev_index)
-        self._on_radio_selected(play_on_select=True)
+    def _go_backward(self):
+        """Goes backward in the stream by 10 seconds."""
+        if self.player.is_playing() and self.player.is_seekable():
+            current_time = self.player.get_time()
+            self.player.set_time(current_time - 10000)
+
+    def _go_forward(self):
+        """Goes forward in the stream by 10 seconds."""
+        if self.player.is_playing() and self.player.is_seekable():
+            current_time = self.player.get_time()
+            self.player.set_time(current_time + 10000)
 
     def _show_add_radio_dialog(self):
         """Displays a dialog to allow the user to add a new radio station."""
@@ -497,16 +524,25 @@ class Radio(QWidget):
                     self.metadata_display.setText(playing_text)
                     self.metadata_display.setAccessibleName(playing_text)
                     self.metadata_timer.start()
+                    # New: Clear the input field after successful playback
+                    self.link_input.clear()
                 except Exception as e:
                     QMessageBox.warning(self, "Playback Error", f"Could not play direct link: {e}\nPlease check the link format or network connection.")
                     self.stop_player()
             else:
+                # Play the currently selected radio from the ComboBox
                 if not self.radio_names or not self.current_link:
                     QMessageBox.warning(self, "Selection Error", "No radio stations available or selected.")
                     self.play_pause_button.setIcon(QIcon('icons/play.png'))
                     self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
                     return
                 try:
+                    # Update media based on selected radio link
+                    link_index = self.radio_names.index(self.selected_radio_name)
+                    self.current_link = self.radio_links[link_index]
+                    media = self.instance.media_new(self.current_link)
+                    self.player.set_media(media)
+
                     self.player.play()
                     playing_text = f"Playing: {self.selected_radio_name}"
                     self.metadata_display.setText(playing_text)
@@ -521,17 +557,26 @@ class Radio(QWidget):
             self.player.audio_set_mute(0)
 
     def stop_player(self):
-        """Stops the VLC media player completely and resets the Play/Pause button state."""
+        """Stops the VLC media player completely and resets the Play/Pause button state.
+        Also stops any active recording.
+        """
+        # New: Use a QTimer to avoid "Not Responding" state
+        self.metadata_timer.stop()
+        QTimer.singleShot(100, self._perform_stop_actions)
+
+    def _perform_stop_actions(self):
+        """Helper method to perform stop actions after a brief delay."""
         self.player.stop()
         self.play_pause_button.setIcon(QIcon('icons/play.png'))
         self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
         self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
         self.metadata_display.hide()
         self.lcd.show()
+        # The link input field is cleared after a successful direct link playback,
+        # so this line is no longer strictly necessary, but it does no harm.
         if self.link_input.text().strip():
             self.link_input.clear()
         self._stop_recording()
-        self.metadata_timer.stop()
 
     def _toggle_record(self):
         """Toggles recording of the current stream."""
