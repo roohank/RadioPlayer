@@ -8,7 +8,7 @@ import vlc
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QGridLayout, QLabel, QLineEdit,
     QPushButton, QComboBox, QSlider, QLCDNumber, QMessageBox, QDialog,
-    QRadioButton, QHBoxLayout, QVBoxLayout, QSizePolicy, QListWidget, QListWidgetItem
+    QRadioButton, QHBoxLayout, QVBoxLayout, QSizePolicy, QListWidget, QListWidgetItem, QFileDialog
 )
 from PyQt6.QtGui import QFont, QKeySequence, QIcon
 from PyQt6.QtCore import Qt, QSize, QTimer
@@ -123,6 +123,64 @@ class Radio(QWidget):
                 json.dump(data_to_save, f, indent=4, ensure_ascii=False)
         except Exception as e:
             QMessageBox.critical(self, "Database Save Error", f"Failed to save data to '{self.db_file}': {e}")
+            
+    def _import_from_m3u(self):
+        """
+        Opens a file dialog to select an m3u file, then parses it to extract radio names and links.
+        It then adds them to the application's radio list and saves the updated list.
+        """
+        self.stop_player()
+        self._stop_recording()
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Import Radios from M3U File",
+            "",
+            "M3U Playlist Files (*.m3u)"
+        )
+        
+        if file_path:
+            try:
+                new_radios_added = 0
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    i = 0
+                    while i < len(lines):
+                        line = lines[i].strip()
+                        if line.startswith('#EXTINF:'):
+                            try:
+                                # Extract radio name
+                                name_part = line.split(',')[-1].strip()
+                                
+                                # The next line should be the URL
+                                if i + 1 < len(lines):
+                                    link_line = lines[i+1].strip()
+                                    if link_line.startswith('http://') or link_line.startswith('https://'):
+                                        # Check for duplicates before adding
+                                        if name_part not in self.radio_names and link_line not in self.radio_links:
+                                            self.radio_names.append(name_part)
+                                            self.radio_links.append(link_line)
+                                            new_radios_added += 1
+                                    
+                                    # Move to the next potential entry
+                                    i += 2
+                                else:
+                                    i += 1 # End of file
+                            except IndexError:
+                                # Malformed line, skip to next line
+                                i += 1
+                        else:
+                            i += 1
+                
+                if new_radios_added > 0:
+                    self._save_radio_data()
+                    self._refresh_radio_list(None)
+                    QMessageBox.information(self, "Import Successful", f"{new_radios_added} new radio stations have been imported.")
+                else:
+                    QMessageBox.information(self, "Import Complete", "No new radio stations were found in the selected file or all stations already exist.")
+            
+            except Exception as e:
+                QMessageBox.critical(self, "Import Error", f"An error occurred while importing the M3U file: {e}")
 
     def _init_ui(self):
         """Initializes the user interface elements and their layout with a new two-column design."""
@@ -163,18 +221,13 @@ class Radio(QWidget):
         add_btn.setShortcut(QKeySequence('Ctrl+A'))
         add_btn.setStyleSheet('background-color: rgb(10, 10, 10); color: white;')
         management_buttons_layout.addWidget(add_btn)
+        
+        # New: Import from M3U button
+        import_btn = QPushButton('Import from m3u')
+        import_btn.clicked.connect(self._import_from_m3u)
+        import_btn.setStyleSheet('background-color: rgb(10, 10, 10); color: white;')
+        management_buttons_layout.addWidget(import_btn)
 
-        # New: Next/Previous buttons for list navigation
-        self.prev_radio_button = QPushButton('<< Prev')
-        self.prev_radio_button.setAccessibleName('Previous Radio Station')
-        self.prev_radio_button.clicked.connect(self._go_to_previous_radio)
-        self.next_radio_button = QPushButton('Next >>')
-        self.next_radio_button.setAccessibleName('Next Radio Station')
-        self.next_radio_button.clicked.connect(self._go_to_next_radio)
-        
-        management_buttons_layout.addWidget(self.prev_radio_button)
-        management_buttons_layout.addWidget(self.next_radio_button)
-        
         left_layout.addLayout(management_buttons_layout)
         
         main_layout.addLayout(left_layout)
@@ -209,8 +262,24 @@ class Radio(QWidget):
         self.volume_slider.setSliderPosition(self.player.audio_get_volume())
         self.volume_slider.valueChanged.connect(self._set_volume)
         right_layout.addWidget(self.volume_slider)
+        
+        # New: Box for all playback controls
+        playback_controls_box = QVBoxLayout()
+        
+        # Next/Previous buttons
+        self.prev_radio_button = QPushButton('<< Prev')
+        self.prev_radio_button.setAccessibleName('Previous Radio Station')
+        self.prev_radio_button.clicked.connect(self._go_to_previous_radio)
+        self.next_radio_button = QPushButton('Next >>')
+        self.next_radio_button.setAccessibleName('Next Radio Station')
+        self.next_radio_button.clicked.connect(self._go_to_next_radio)
 
+        # Forward/Backward/Play/Stop buttons
         playback_and_seek_layout = QHBoxLayout()
+
+        playback_and_seek_layout.addWidget(self.prev_radio_button)
+
+
         
         self.rewind_button = QPushButton()
         self.rewind_button.setShortcut(QKeySequence('Left'))
@@ -248,6 +317,8 @@ class Radio(QWidget):
         self.forward_button.setAccessibleName('Go Forward')
         playback_and_seek_layout.addWidget(self.forward_button)
 
+        playback_and_seek_layout.addWidget(self.next_radio_button)
+
         self.record_button = QPushButton()
         self.record_button.setShortcut(QKeySequence('Ctrl+R'))
         self.record_button.setIcon(QIcon('icons/record.png'))
@@ -257,7 +328,8 @@ class Radio(QWidget):
         self.record_button.setAccessibleName('Record')
         playback_and_seek_layout.addWidget(self.record_button)
         
-        right_layout.addLayout(playback_and_seek_layout)
+        playback_controls_box.addLayout(playback_and_seek_layout)
+        right_layout.addLayout(playback_controls_box)
 
         self.link_input = QLineEdit()
         self.link_input.setAccessibleName('Enter Link For Play')
@@ -273,8 +345,8 @@ class Radio(QWidget):
         else:
             self.lcd.hide()
             self.metadata_display.show()
-            self.metadata_display.setText("   No radios found. Add a new one!")
-            self.metadata_display.setAccessibleName("   No radios found. Add a new one!")
+            self.metadata_display.setText("    No radios found. Add a new one!")
+            self.metadata_display.setAccessibleName("    No radios found. Add a new one!")
 
     def _list_widget_key_press_event(self, event):
         """Custom key press event handler for the list widget."""
@@ -491,8 +563,8 @@ class Radio(QWidget):
             if self.radio_names:
                 self.radio_list_widget.setCurrentRow(0)
             else:
-                self.metadata_display.setText("   No radios found. Add a new one!")
-                self.metadata_display.setAccessibleName("   No radios found. Add a new one!")
+                self.metadata_display.setText("    No radios found. Add a new one!")
+                self.metadata_display.setAccessibleName("    No radios found. Add a new one!")
                 self.stop_player()
 
     def _on_radio_selected(self, play_on_select=False):
@@ -502,8 +574,8 @@ class Radio(QWidget):
             self.selected_radio_index = -1
             self.lcd.hide()
             self.metadata_display.show()
-            self.metadata_display.setText("   No radios available. Add a new one!")
-            self.metadata_display.setAccessibleName("   No radios available. Add a new one!")
+            self.metadata_display.setText("    No radios available. Add a new one!")
+            self.metadata_display.setAccessibleName("    No radios available. Add a new one!")
             self.stop_player()
             self._stop_recording()
             return
@@ -648,8 +720,8 @@ class Radio(QWidget):
                 self.record_button.setIcon(QIcon('icons/record_active.png'))
                 self.record_button.setStyleSheet('background-color: rgb(0, 100, 0); color: white;')
                 self.metadata_display.show()
-                self.metadata_display.setText(f"   Recording to: {file_name}")
-                self.metadata_display.setAccessibleName(f"   Recording to: {file_name}")
+                self.metadata_display.setText(f"    Recording to: {file_name}")
+                self.metadata_display.setAccessibleName(f"    Recording to: {file_name}")
                 self.lcd.hide()
                 self.metadata_timer.stop()
 

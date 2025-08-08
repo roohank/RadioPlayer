@@ -1,0 +1,375 @@
+#EXTM3U
+#EXTINF:-1,radio varzesh
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-varzesh/playlist.m3u8
+#EXTINF:-1,Radio gooshkon
+https://r.gooshkon.ir:443/live.ogg
+#EXTINF:-1,radio si morg
+http://t.smg1.ir:8000/
+#EXTINF:-1,radio namayesh
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-namayesh/playlist.m3u8
+#EXTINF:-1,Radio roman
+http://stream.zenolive.com/yqdk4q7zetzuv.mp3
+#EXTINF:-1,radio golchin LosAngeles
+https://radiogolchin.out.airtime.pro/radiogolchin_a
+#EXTINF:-1,persian team talk radio
+http://r.pgbu.ir:8000/live
+#EXTINF:-1,radio javan usa
+http://rj1.rjstream.com/
+#EXTINF:-1,Radio iran
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-iran/playlist.m3u8
+#EXTINF:-1,radio javan
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-javan/playlist.m3u8
+#EXTINF:-1,Radio saba
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-saba/playlist.m3u8
+#EXTINF:-1,radio ava
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-nama-ava/playlist.m3u8
+#EXTINF:-1,radio payam
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-payam/playlist.m3u8
+#EXTINF:-1,Radio farhang
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-farhang/playlist.m3u8
+#EXTINF:-1,Radio tehran
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-tehran/playlist.m3u8
+#EXTINF:-1,radio goftegoo
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-goftego/chunklist_w755519715.m3u8
+#EXTINF:-1,Radio farda
+https://ample-10.radiojar.com/cp13r2cpn3quv?rj-ttl=5&rj-tok=AAABcFK1q18An0qke25Q4Krjug
+#EXTINF:-1, Radio Hamrah
+http://66.165.236.130/RadioHamrahMP3#EXTINF:-1, Radio Iran UShttp://23.227.170.147/KIRN
+#EXTINF:-1,radio 670AM KIRN
+http://23.227.170.147/KIRN
+#EXTINF:-1, Radio Yar
+http://192.34.153.102:8000/RadioYAR.mp3
+#EXTINF:-1,Radio ran
+http://185.80.220.12:8047/live
+#EXTINF:-1, Radio Arina
+https://s5.voscast.com:10205/stream
+#EXTINF:-1,Radio faaz
+http://www.radiofaaz.com:8000/radiofaaz
+#EXTINF:-1,Radio eram
+http://37.59.47.192:8200/
+#EXTINF:-1,radio avaz farsi
+http://avazfarsi.com:9300/;
+#EXTINF:-1,Radio sarcheshmeh
+http://sarcheshmeh.icdndhcp.com:18452/stream
+#EXTINF:-1, Radio.GL (GLWiZ) Persian Farsi Iranian
+https://shoutcast.glwiz.com:8000/RadioGL.mp3/;
+#EXTINF:-1,Asheganeha (GLWiZ)
+http://192.34.153.102:8000/asheghaneh.mp3
+#EXTINF:-1,Caltex Music
+http://radio.caltexmusic.com:8000/stream
+#EXTINF:-1,caltex dance
+http://radio.caltexmusic.com:8101/stream
+#EXTINF:-1,Caltex Picks
+http://radio.caltexmusic.com:8077/stream
+#EXTINF:-1,Caltex Wedding
+http://radio.caltexmusic.com:8107/stream
+#EXTINF:-1,Caltex Deep Love
+http://radio.caltexmusic.com:8036/stream
+#EXTINF:-1,Radio hamsafar
+https://streamingv2.shoutcast.com/Hamsafarradio
+#EXTINF:-1,Radio Persian Radio Center
+http://37.59.47.192:8200
+#EXTINF:-1, Radio Persian VIP
+http://radio.persianvip.com:8888/;
+#EXTINF:-1,Radio shadi
+http://ice9.securenetsystems.net/SHADI
+#EXTINF:-1, 70S PERSIAN MUSIC (GLWIZ)
+http://192.34.153.102:8000/KMspersian.mp3/;
+#EXTINF:-1, London Persian Radio
+http://198.178.123.11:7574/live
+#EXTINF:-1, Radio Shoma
+https://n01.radiojar.com/rzcfw4cbsxquv#EXTINF:-1, Radio Navahang
+#EXTINF:-1,radio ma va shoma
+http://hemnos.cdnstream.com/1877_128
+#EXTINF:-1,radio iran international
+https://radio.iraninternational.app/iintl_c
+#EXTINF:-1,radio itn
+http://23.29.71.154:8142/;stream
+#EXTINF:-1, Radio Khatereh
+https://servidor22.brlogic.com:7160/live
+#EXTINF:-1,caltex mardomi
+http://radio.caltexmusic.com:8083/stream
+#EXTINF:-1,70S PERSIAN MUSIC (GLWIZ)
+http://192.34.153.102:8000/KMspersian.mp3
+#EXTINF:-1,Radio Mahoor (GLWiZ)
+http://192.34.153.102:8000/mahoor.mp3
+#EXTINF:-1,Radio Mahoor-Shaer (GLWiZ)
+http://192.34.153.102:8000/shaer.mp3/;
+#EXTINF:-1,ganje hozur radio music
+http://streams.radio.co/s6f0514922/listen
+#EXTINF:-1,caltex golha
+http://radio.caltexmusic.com:8042/stream
+#EXTINF:-1,caltex taknavazan
+http://radio.caltexmusic.com:8089/stream
+#EXTINF:-1, 70S AZERI MUSIC (GLWIZ)
+https://shoutcast.glwiz.com:8000/KMsazeri.mp3/;
+#EXTINF:-1,Radio Mahoor-Kids (GLWiZ)
+http://192.34.153.102:8000/kids.mp3/;
+#EXTINF:-1,Light Music (GLWiZ)
+http://192.34.153.102:8000/lightmusic.mp3/;
+#EXTINF:-1,Radio Stockholmian
+http://217.210.9.84:8000
+#EXTINF:-1,voa
+https://n05.radiojar.com/y58cqgggq3quv?rj-ttl=5&rj-tok=AAABcFQ6xGoAivtWh5TcvC80tA
+#EXTINF:-1, Radio Ayeneh
+http://107.181.227.250:8244/;
+#EXTINF:-1,Radio jahani
+http://shoutcast.wrn.org:8025/vor
+#EXTINF:-1,MNF
+http://webbradio1.intinor.se:8000/mnf.mp3
+#EXTINF:-1,70S Arabic MUSIC (GLWIZ)
+http://192.34.153.102:8000/KMsarabic.mp3
+#EXTINF:-1,70S euro MUSIC (GLWIZ)
+http://192.34.153.102:8000/KMseuro.mp3
+#EXTINF:-1,PersianBMS
+http://45.79.224.114:8000/BahaiRadio/live.mp3/;
+#EXTINF:-1,Radio mojdeh
+http://ic2317.c1261.fast-serv.com/rm64
+#EXTINF:-1,Radio iranzamin
+http://lyssna.fnf.nu:8080/gnf102.mp3
+#EXTINF:-1,Radio iran on air
+http://iranonairone.mine.nu:9300
+#EXTINF:-1,ganje hozur radio live
+http://streamer.radio.co/sa4caa82e5/listen
+#EXTINF:-1,Caltex Radio Siavash Ghomayshi
+http://radio.caltexmusic.com:8113/stream
+#EXTINF:-1,Caltex Radio Ebi
+http://radio.caltexmusic.com:8024/stream
+#EXTINF:-1,Caltex Easy Listening
+http://radio.caltexmusic.com:8095/stream
+#EXTINF:-1, Radio Sevina
+https://c32.radioboss.fm:18230/stream
+#EXTINF:-1,radio rangarang1
+http://m.rangarang.us:8000/stream/1/;
+#EXTINF:-1,radio shemroon
+https://usa7.fastcast4u.com/proxy/pghola05?mp=/1
+#EXTINF:-1,radio mojahed
+https://s2.radio.co/s830691c74/listen
+#EXTINF:-1,radio esfahan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-esfahan/playlist.m3u8
+#EXTINF:-1,radio fars
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-fars/playlist.m3u8
+#EXTINF:-1,khalije fars
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-hormozgan/playlist.m3u8
+#EXTINF:-1,radio booshehr
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-booshehr/playlist.m3u8
+#EXTINF:-1,radio yasooj
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-yasuj/playlist.m3u8
+#EXTINF:-1,radio khoozestan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-khoozestan/playlist.m3u8
+#EXTINF:-1,radio abadan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-abadan/playlist.m3u8
+#EXTINF:-1,radio kish
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-kish/playlist.m3u8
+#EXTINF:-1,radio yazd
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-yazd/playlist.m3u8
+#EXTINF:-1,radio alborz
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-alborz/playlist.m3u8
+#EXTINF:-1,radio semnan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-semnan/playlist.m3u8
+#EXTINF:-1,radio ghom
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-qom/playlist.m3u8
+#EXTINF:-1,radio ghazvin
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-qazvin/playlist.m3u8
+#EXTINF:-1,radio markazi
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-markazi/playlist.m3u8
+#EXTINF:-1,radio kerman
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-kerman/playlist.m3u8
+#EXTINF:-1,radio hamedan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-hamedan/playlist.m3u8
+#EXTINF:-1,radio lorestan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-lorestan/playlist.m3u8
+#EXTINF:-1,radio khorasaneh razavi
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-khorasanrazavi/playlist.m3u8
+#EXTINF:-1,radio khorasaneh shomali
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-khorasanshomali/playlist.m3u8
+#EXTINF:-1,radio khorasaneh jonoobi
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-khorasanjonoobi/playlist.m3u8
+#EXTINF:-1,chaahar mahaal bakhtiari
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-charmahal/playlist.m3u8
+#EXTINF:-1,radio rasht
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-gilan/playlist.m3u8
+#EXTINF:-1,mazandaran
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-mazandaran/playlist.m3u8
+#EXTINF:-1,radio gorgan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-golestan/playlist.m3u8
+#EXTINF:-1,radio kermanshah
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-kermanshah/playlist.m3u8
+#EXTINF:-1,radio kordestan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-kordestan/playlist.m3u8
+#EXTINF:-1,radio mah abad
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-mahabad/playlist.m3u8
+#EXTINF:-1,radio ilam
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-ilam/playlist.m3u8
+#EXTINF:-1,radio zahedan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-zahedan/playlist.m3u8
+#EXTINF:-1,radio zanjan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-zanjan/playlist.m3u8
+#EXTINF:-1,radio ardebil
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-ardebil/playlist.m3u8
+#EXTINF:-1,azarbaijan sharghi
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-azarsharghi/playlist.m3u8
+#EXTINF:-1,azarbaijan gharbi
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-azargharbi/playlist.m3u8
+#EXTINF:-1,maragheh
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-maragheh/playlist.m3u8
+#EXTINF:-1,marivan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-marivan/playlist.m3u8
+#EXTINF:-1,kashan
+http://s0.cdn1.iranseda.ir:1935/liveedgeprovincial/radio-kashan/playlist.m3u8
+#EXTINF:-1,Radio eghtesad
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-eghtesad/playlist.m3u8
+#EXTINF:-1,Radio enghelab
+http://s0.cdn1.iranseda.ir:1935/liveedge/radio-monasebati/chunklist_w38298230.m3u8
+#EXTINF:-1,radio dari
+http://stream.parstoday.com:1935/ws/irib7/chunklist_w104344948.m3u8
+#EXTINF:-1,radio arabic
+http://s0.cdn1.iranseda.ir:1935/liveedge/radio-arabic/chunklist_w599757101.m3u8
+#EXTINF:-1,radio english
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-english/chunklist_w1656473412.m3u8
+#EXTINF:-1,radio maaref
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-maaref/chunklist_w315273789.m3u8
+#EXTINF:-1,radio talavat
+http://s0.cdn1.iranseda.ir:1935/liveedge/radio-talavat/chunklist_w2140215930.m3u8
+#EXTINF:-1,radio azarbayjan gharbirbi
+http://altcdn.iranseda.ir:1935/channel-live/smil:r-azgharbi/chunklist_b307200_slFa.m3u8
+#EXTINF:-1,radio quran
+http://s1.cdn1.iranseda.ir:1935/liveedge/radio-quran/chunklist_w847745462.m3u8
+#EXTINF:-1,Quraan.com.kw - Quran in Persian by EDC
+http://quraan.us:9936/;
+#EXTINF:-1,radio salamat
+http://s0.cdn1.iranseda.ir:1935/liveedge/radio-salamat/chunklist_w902576092.m3u8
+#EXTINF:-1,Radio Srood
+http://stream.cloud.radiosrood.com:8000/live
+#EXTINF:-1,Radio Ariana
+http://streams.radio.co/sa3345aaa8/listen
+#EXTINF:-1,RADIO SEDAYE ZANDEGI
+https://afghanradio.org:9443/stream/1;
+#EXTINF:-1,Radio BBC Dari
+https://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/dash/nonuk/dash_low/cfs/bbc_dari_radio.mpd
+#EXTINF:-1,Neshan Aramesh
+http://radio.rajman.org/instrumental.station
+#EXTINF:-1,Neshan Avang
+http://radio.rajman.org/fusion.station
+#EXTINF:-1,Neshan Oj
+http://radio.rajman.org/upbeats.station
+#EXTINF:-1,Neshan Rangarang
+http://radio.rajman.org/pop.station
+#EXTINF:-1,Neshan Sarzamin
+http://radio.rajman.org/folk.station
+#EXTINF:-1,Neshan harmoni
+http://radio.rajman.org/classic.station
+#EXTINF:-1,Neshan sarkhoshan
+http://radio.rajman.org/persianclassic.station
+#EXTINF:-1,radio amir
+http://stream.zenolive.com/wn35gykq4tzuv.mp3
+#EXTINF:-1,radio iranian
+http://37.59.47.192:8200/;
+#EXTINF:-1,radio setareh
+http://s2.free-shoutcast.com/stream/18256
+#EXTINF:-1,radio shadi
+http://ice9.securenetsystems.net/SHADI
+#EXTINF:-1,radio sedaie iran
+http://lyssna.fnf.nu:8080/gnf102.mp3
+#EXTINF:-1,radio music iranian
+http://node-13.zeno.fm/34cffukzmwzuv.mp3
+#EXTINF:-1,radio naji shab
+https://stream.zeno.fm/2h05d1yhgg0uv.aac
+#EXTINF:-1,radio navahang
+https://navairan.com/;stream.nsv
+#EXTINF:-1,radio kongereh iranian
+http://stream.zenolive.com/kbt00r580feuv
+#EXTINF:-1,radio shaberoshan
+http://sptt.ir:8000/radio.ogg
+#EXTINF:-1,24 ARABESK
+https://24arabesk.80.yayin.com.tr/;
+#EXTINF:-1,Afghan Radio Station
+http://streamingv2.shoutcast.com/afghan-radio--station
+#EXTINF:-1,Aghani Aghani
+http://185.52.127.132/lb/1/aac_64.mp3
+#EXTINF:-1,Akra FM
+https://cdn3.akradyo.net/akracanli2/_definst_/livestream_aac/chunklist.m3u8
+#EXTINF:-1,Al Arabiya 99
+http://stream.radiojar.com/s1mygd1frxquv?
+#EXTINF:-1,Al Khaleejiya 100.9
+http://stream.radiojar.com/5wpf9e4erxquv?
+#EXTINF:-1,Al Madina FM
+http://192.99.17.12:4978/;stream.mp3
+#EXTINF:-1,Al Rabia FM
+http://s2.radio.co/s770fa24b6/listen?
+#EXTINF:-1,Angamy
+http://angamy.com:9302/;
+#EXTINF:-1,Baba Radyo
+http://37.247.98.7/;stream.mp3
+#EXTINF:-1,Dengi Kurdsat
+http://uk3.internet-radio.com:8011/;?
+#EXTINF:-1,Dost FM
+http://yayin.dostfm.com:8920/;
+#EXTINF:-1,Eksen
+https://ssldyg.radyotvonline.com/pozitif/smil:eksen.smil/playlist.m3u8
+#EXTINF:-1,Firat FM 87.3
+http://yayin.firatfm.com:3065/;?
+#EXTINF:-1,Hatay Radyo Akdeniz
+http://yayin.netyayin.net:7077/;stream.mp3?
+#EXTINF:-1,Havin FM
+http://havinfm.yayindinle.net:7764/?
+#EXTINF:-1,Joint Radio Reggae
+http://radio.jointil.net:9998/;
+#EXTINF:-1,Joy FM
+https://17753.live.streamtheworld.com/JOY_FMAAC.aac
+#EXTINF:-1,Joy Turk
+https://17733.live.streamtheworld.com/JOY_TURKAAC.aac
+#EXTINF:-1,KURDmix
+http://176.9.78.226:32000/stream?
+#EXTINF:-1,Karadeniz FM
+http://46.20.7.100/stream/170/
+#EXTINF:-1,Kmfm
+https://listen-kmfm.sharp-stream.com/kmfmdab.mp3
+#EXTINF:-1,Kral FM
+http://kralwmp.radyotvonline.com/;
+#EXTINF:-1,Kral Pop
+http://kralpopwmp.radyotvonline.com/;?
+#EXTINF:-1,KurdFM
+http://178.254.29.85:4747/stream?
+#EXTINF:-1,MORAL FM
+http://yayin2.canliyayin.org:8886/;?
+#EXTINF:-1,Mahatet Masr
+https://s3.radio.co/s9cb11828c/listen
+#EXTINF:-1,Metro FM
+https://17773.live.streamtheworld.com/METRO_FM128AAC.aac
+#EXTINF:-1,NTV Radyo
+http://ntvrdsc.radyotvonline.com:80/?
+#EXTINF:-1,Pamir
+http://radio.pamir.cloud:8000/live
+#EXTINF:-1,RADIO FG
+http://radiofg.impek.com/fg.mp3
+#EXTINF:-1,Pirate FM
+http://str1.sad.ukrd.com/pirate?
+#EXTINF:-1,Radio Classique
+http://radioclassique.ice.infomaniak.ch/radioclassique-high
+#EXTINF:-1,Radio Damascus
+http://radioliveb.rtv.gov.sy:8002/RadioDimshq
+#EXTINF:-1,Radio Heimatmelodie
+https://rhm1.de/listen.mp3
+#EXTINF:-1,Radio Paloma
+https://pool.radiopaloma.de/RADIOPALOMA.mp3
+#EXTINF:-1,Radio Shazamzee
+https://streaming.radio.co/s0ce169aac/listen
+#EXTINF:-1,Radio 2000
+http://stream.taksimbilisim.com:8004/;?
+#EXTINF:-1,Radio Megasite
+http://mega.netradyom.com:7900/;?
+#EXTINF:-1,Rotana Tarab
+http://188.247.86.67:8008/3?
+#EXTINF:-1,Rudaw Radio
+http://209.15.226.17:9006/stream?
+#EXTINF:-1,Slow Turk
+https://radyo.duhnet.tv/slowturk
+#EXTINF:-1,Super Fm
+https://17733.live.streamtheworld.com/SUPER_FM128AAC.aac
+#EXTINF:-1,TRT Radyo 6
+https://radio-trtradyo6.live.trt.com.tr/master.m3u8?
+#EXTINF:-1,TheJazzGroove
+http://mp3-128.streamthejazzgroove.com/;stream.mp3
+#EXTINF:-1,WDR Cosmo_Bernama Kurdi
+http://wdr-cosmo-bernamakurdikoelnradyosu.icecast.wdr.de/wdr/cosmo/bernamakurdikoelnradyosu/mp3/128/stream.mp3?
