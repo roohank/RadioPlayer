@@ -12,6 +12,52 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QFont, QKeySequence, QIcon
 from PyQt6.QtCore import Qt, QSize, QTimer
+from PyQt6.QtCore import QThread, pyqtSignal
+
+class M3uImporterWorker(QThread):
+    # سیگنالی که پس از اتمام پردازش فایل، داده های جدید را ارسال می کند
+    finished = pyqtSignal(list, list)
+    error = pyqtSignal(str)
+
+    def __init__(self, file_path, current_radio_names, current_radio_links):
+        super().__init__()
+        self.file_path = file_path
+        # برای جلوگیری از تغییر مستقیم لیست های اصلی در نخ Worker
+        self.current_radio_names = current_radio_names[:]
+        self.current_radio_links = current_radio_links[:]
+
+    def run(self):
+        new_names = []
+        new_links = []
+        try:
+            with open(self.file_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                i = 0
+                while i < len(lines):
+                    line = lines[i].strip()
+                    if line.startswith('#EXTINF:'):
+                        try:
+                            name_part = line.split(',')[-1].strip()
+                            if i + 1 < len(lines):
+                                link_line = lines[i+1].strip()
+                                if link_line.startswith('http://') or link_line.startswith('https://'):
+                                    # بررسی تکراری نبودن قبل از اضافه کردن
+                                    if name_part not in self.current_radio_names and link_line not in self.current_radio_links:
+                                        new_names.append(name_part)
+                                        new_links.append(link_line)
+                                # در هر صورت به خط بعدی (لینک) یا بعد از آن پرش کن
+                                i += 2 
+                            else:
+                                # اگر بعد از EXTFINF خطی نبود (پایان فایل)
+                                i += 1 
+                        except IndexError:
+                            # خط خراب بود، به خط بعدی پرش کن
+                            i += 1 
+                    else:
+                        i += 1
+            self.finished.emit(new_names, new_links)
+        except Exception as e:
+            self.error.emit(f"Error processing M3U file: {e}")
 
 class Radio(QWidget):
     def __init__(self):
@@ -126,8 +172,8 @@ class Radio(QWidget):
             
     def _import_from_m3u(self):
         """
-        Opens a file dialog to select an m3u file, then parses it to extract radio names and links.
-        It then adds them to the application's radio list and saves the updated list.
+        Opens a file dialog to select an m3u file, then starts a worker thread
+        to parse it and update the radio list.
         """
         self.stop_player()
         self._stop_recording()
@@ -140,47 +186,75 @@ class Radio(QWidget):
         )
         
         if file_path:
-            try:
-                new_radios_added = 0
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    lines = f.readlines()
-                    i = 0
-                    while i < len(lines):
-                        line = lines[i].strip()
-                        if line.startswith('#EXTINF:'):
-                            try:
-                                # Extract radio name
-                                name_part = line.split(',')[-1].strip()
-                                
-                                # The next line should be the URL
-                                if i + 1 < len(lines):
-                                    link_line = lines[i+1].strip()
-                                    if link_line.startswith('http://') or link_line.startswith('https://'):
-                                        # Check for duplicates before adding
-                                        if name_part not in self.radio_names and link_line not in self.radio_links:
-                                            self.radio_names.append(name_part)
-                                            self.radio_links.append(link_line)
-                                            new_radios_added += 1
-                                    
-                                    # Move to the next potential entry
-                                    i += 2
-                                else:
-                                    i += 1 # End of file
-                            except IndexError:
-                                # Malformed line, skip to next line
-                                i += 1
-                        else:
-                            i += 1
-                
-                if new_radios_added > 0:
-                    self._save_radio_data()
-                    self._refresh_radio_list(None)
-                    QMessageBox.information(self, "Import Successful", f"{new_radios_added} new radio stations have been imported.")
-                else:
-                    QMessageBox.information(self, "Import Complete", "No new radio stations were found in the selected file or all stations already exist.")
-            
-            except Exception as e:
-                QMessageBox.critical(self, "Import Error", f"An error occurred while importing the M3U file: {e}")
+            # نمایش پیام بارگذاری
+            self.metadata_display.setText("Processing M3U file, please wait...")
+            self.metadata_display.setAccessibleName("Processing M3U file, please wait...")
+            self.metadata_display.show()
+            self.lcd.hide()
+            QApplication.processEvents() # اطمینان از نمایش پیام قبل از شروع عملیات سنگین
+
+            self.importer_worker = M3uImporterWorker(file_path, self.radio_names, self.radio_links)
+            self.importer_worker.finished.connect(self._handle_m3u_import_finished)
+            self.importer_worker.error.connect(self._handle_m3u_import_error)
+            self.importer_worker.start() # شروع عملیات در یک نخ جداگانه
+
+    def _handle_m3u_import_finished(self, new_names, new_links):
+        """Slot to handle the results from the M3U import worker."""
+        new_radios_added = 0
+        for name, link in zip(new_names, new_links):
+            if name not in self.radio_names and link not in self.radio_links:
+                self.radio_names.append(name)
+                self.radio_links.append(link)
+                new_radios_added += 1
+        
+        if new_radios_added > 0:
+            self._save_radio_data()
+            self._refresh_radio_list(None)
+            QMessageBox.information(self, "Import Successful", f"{new_radios_added} new radio stations have been imported.")
+        else:
+            QMessageBox.information(self, "Import Complete", "No new radio stations were found in the selected file or all stations already exist.")
+        
+        # بازگرداندن نمایشگر به حالت عادی پس از اتمام عملیات
+        if self.radio_names:
+            current_row = self.radio_list_widget.currentRow()
+            if current_row >= 0:
+                self.metadata_display.setText(self.radio_names[current_row])
+                self.metadata_display.setAccessibleName(self.radio_names[current_row])
+                self.metadata_display.show()
+                self.lcd.hide()
+            else:
+                self.metadata_display.setText("    No radios found. Add a new one!")
+                self.metadata_display.setAccessibleName("    No radios found. Add a new one!")
+                self.metadata_display.show()
+                self.lcd.hide()
+        else:
+            self.metadata_display.setText("    No radios found. Add a new one!")
+            self.metadata_display.setAccessibleName("    No radios found. Add a new one!")
+            self.metadata_display.show()
+            self.lcd.hide()
+
+
+    def _handle_m3u_import_error(self, message):
+        """Slot to handle errors from the M3U import worker."""
+        QMessageBox.critical(self, "Import Error", message)
+        # بازگرداندن نمایشگر به حالت عادی در صورت خطا
+        if self.radio_names:
+            current_row = self.radio_list_widget.currentRow()
+            if current_row >= 0:
+                self.metadata_display.setText(self.radio_names[current_row])
+                self.metadata_display.setAccessibleName(self.radio_names[current_row])
+                self.metadata_display.show()
+                self.lcd.hide()
+            else:
+                self.metadata_display.setText("    No radios found. Add a new one!")
+                self.metadata_display.setAccessibleName("    No radios found. Add a new one!")
+                self.metadata_display.show()
+                self.lcd.hide()
+        else:
+            self.metadata_display.setText("    No radios found. Add a new one!")
+            self.metadata_display.setAccessibleName("    No radios found. Add a new one!")
+            self.metadata_display.show()
+            self.lcd.hide()
 
     def _init_ui(self):
         """Initializes the user interface elements and their layout with a new two-column design."""
@@ -296,7 +370,7 @@ class Radio(QWidget):
         self.play_pause_button.setIconSize(QSize(24, 24))
         self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
         self.play_pause_button.clicked.connect(self._toggle_play_pause)
-        self.play_pause_button.setAccessibleName('Play/Pause')
+        self.play_pause_button.setAccessibleName('Play')
         playback_and_seek_layout.addWidget(self.play_pause_button)
         
         self.stop_button = QPushButton()
@@ -402,6 +476,7 @@ class Radio(QWidget):
                 self.player.play()
                 self.play_pause_button.setIcon(QIcon('icons/pause.png'))
                 self.play_pause_button.setStyleSheet('background-color: rgb(255, 165, 0);')
+                self.play_pause_button.setAccessibleName('Pause') # 👈 تغییر
                 self.metadata_timer.start()
 
         except Exception as e:
@@ -413,6 +488,7 @@ class Radio(QWidget):
         if not play_on_select:
             self.play_pause_button.setIcon(QIcon('icons/play.png'))
             self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
+            self.play_pause_button.setAccessibleName('Play') # 👈 تغییر
 
     def _check_and_update_metadata(self):
         """Checks for new metadata and updates the display if it has changed."""
@@ -627,6 +703,7 @@ class Radio(QWidget):
             self.player.pause()
             self.play_pause_button.setIcon(QIcon('icons/play.png'))
             self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
+            self.play_pause_button.setAccessibleName('Play') # 👈 تغییر
             
             paused_text = f"Paused: {self.selected_radio_name or direct_link}"
             self.metadata_display.setText(paused_text)
@@ -636,6 +713,7 @@ class Radio(QWidget):
         else:
             self.play_pause_button.setIcon(QIcon('icons/pause.png'))
             self.play_pause_button.setStyleSheet('background-color: rgb(255, 165, 0);')
+            self.play_pause_button.setAccessibleName('Pause') # 👈 تغییر
 
             if direct_link:
                 try:
@@ -656,6 +734,7 @@ class Radio(QWidget):
                     QMessageBox.warning(self, "Selection Error", "No radio stations available or selected.")
                     self.play_pause_button.setIcon(QIcon('icons/play.png'))
                     self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
+                    self.play_pause_button.setAccessibleName('Play') # 👈 تغییر
                     return
                 try:
                     self._on_radio_selected(play_on_select=True)
@@ -664,6 +743,7 @@ class Radio(QWidget):
                     self.stop_player()
                     self.play_pause_button.setIcon(QIcon('icons/play.png'))
                     self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
+                    self.play_pause_button.setAccessibleName('Play') # 👈 تغییر
 
             self.player.audio_set_mute(0)
 
@@ -680,6 +760,7 @@ class Radio(QWidget):
         self.play_pause_button.setIcon(QIcon('icons/play.png'))
         self.play_pause_button.setStyleSheet('background-color: rgb(46, 200, 87);')
         self.play_pause_button.setShortcut(QKeySequence('Ctrl+P'))
+        self.play_pause_button.setAccessibleName('Play') # 👈 تغییر
         self.metadata_display.hide()
         self.lcd.show()
         if self.link_input.text().strip():
